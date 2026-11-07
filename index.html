@@ -67,14 +67,14 @@ svg.car{width:100%;max-height:230px}
 <script>
 /* ===== DANE ===== */
 const CARS=[
- {id:'mikro',n:'Mikro 1.2',p:4000,hp:70,hd:35,col:'#8a94a6',d:'Zwykły hatchback na start'},
- {id:'volta',n:'Volta GTI',p:22000,hp:200,hd:60,col:'#e63946',d:'Hot-hatch z Europy'},
- {id:'sakura',n:'Sakura S-15',p:30000,hp:220,hd:75,col:'#f4a261',d:'Król driftu (JDM)'},
- {id:'kaze',n:'Kaze Z-GT',p:38000,hp:280,hd:70,col:'#3a86ff',d:'Japoński sportowiec'},
- {id:'alpen',n:'Alpen Quattro',p:52000,hp:300,hd:80,col:'#c0c8d8',d:'Napęd 4x4, bezlitosna trakcja'},
- {id:'bavaro',n:'Bavaro M-Sport',p:55000,hp:310,hd:78,col:'#1d3557',d:'Niemiecka precyzja'},
- {id:'thunder',n:'Thunder Charger',p:60000,hp:450,hd:45,col:'#111',d:'Muscle car, 6.4 V8'},
- {id:'raiden',n:'Raiden R-34',p:65000,hp:330,hd:82,col:'#7b2cbf',d:'Legenda tuningu (JDM)'}];
+ {id:'mikro',n:'Fiat Punto 1.2',p:4000,hp:70,hd:35,col:'#8a94a6',d:'Zwykły hatchback na start'},
+ {id:'volta',n:'Volkswagen Golf GTI',p:22000,hp:200,hd:60,col:'#e63946',d:'Hot-hatch z Europy'},
+ {id:'sakura',n:'Nissan Silvia S15',p:30000,hp:220,hd:75,col:'#f4a261',d:'Król driftu (JDM)'},
+ {id:'kaze',n:'Mazda RX-7 FD',p:38000,hp:280,hd:70,col:'#3a86ff',d:'Japoński sportowiec'},
+ {id:'alpen',n:'Audi S3 Quattro',p:52000,hp:300,hd:80,col:'#c0c8d8',d:'Napęd 4x4, bezlitosna trakcja'},
+ {id:'bavaro',n:'BMW M3 E46',p:55000,hp:310,hd:78,col:'#1d3557',d:'Niemiecka precyzja'},
+ {id:'thunder',n:'Dodge Charger SRT 392',p:60000,hp:450,hd:45,col:'#111',d:'Muscle car, 6.4 V8'},
+ {id:'raiden',n:'Nissan Skyline GT-R R34',p:65000,hp:330,hd:82,col:'#7b2cbf',d:'Legenda tuningu (JDM)'}];
 const SLOTS=[
  {k:'chip',c:'Silnik',n:'Chip tuning',o:[{n:'Stage 1',t:'Street',p:1200,hp:15}]},
  {k:'exh',c:'Silnik',n:'Układ wydechowy',o:[{n:'Sportowy',t:'Sport',p:1800,hp:20}]},
@@ -138,7 +138,7 @@ function paint(col){const c=S.cars[sel];if(S.cash<300){toast('❌ Za mało gotó
 function buyCar(id){const b=CARS.find(x=>x.id===id);if(S.cash<b.p){toast('❌ Za mało gotówki');return}S.cash-=b.p;S.cars.push({id,col:b.col,parts:{},neon:'#00e5ff',spent:0});sel=S.cars.length-1;beep(800,.25,'sine');toast('🚗 Kupiono '+b.n+'!');render()}
 function sellCar(i){if(S.cars.length<2){toast('Musisz zostawić jedno auto');return}const c=S.cars[i],v=value(c);modal(`<h3>Sprzedać ${CARS.find(x=>x.id===c.id).n}?</h3><p>Wycena: <b class="g">${fmt(v)}</b></p><div class="row"><button onclick="closeModal()">Anuluj</button><button class="pri" onclick="doSell(${i},${v})">Sprzedaj</button></div>`)}
 function doSell(i,v){S.cars.splice(i,1);sel=0;gain(v,0);closeModal();beep(500,.2,'sine');render()}
-function buyUp(k){const u=UPS.find(x=>x.k===k),n=S.up[k],cost=u.base*(n+1);if(n>=u.max||S.cash<cost){toast('❌ Za mało gotówki');return}S.cash-=cost;S.up[k]++;beep(850,.2,'sine');toast('✅ '+u.n);render()}
+function buyUp(k){const u=UPS.find(x=>x.k===k),n=S.up[k],cost=u.base*(k==='bays'?n:n+1);if(n>=u.max||S.cash<cost){toast('❌ Za mało gotówki');return}S.cash-=cost;S.up[k]++;beep(850,.2,'sine');toast('✅ '+u.n);render()}
 function dyno(){const c=S.cars[sel],a=CARS.find(x=>x.id===c.id).hp,b=stats(c).hp,mx=Math.max(b,a)*1.15;let t=0;
  modal(`<h3>Hamownia</h3><svg viewBox="0 0 400 200" style="width:100%;background:#0006;border-radius:10px"><polyline id="l0" fill="none" stroke="#8b93aa" stroke-width="3"/><polyline id="l1" fill="none" stroke="#ff2d55" stroke-width="3"/></svg><p>Seryjnie: <b>${a} KM</b> → Teraz: <b class="g">${b} KM</b> (<span class="r">+${b-a}</span>)</p><button class="pri" onclick="closeModal()">Zamknij</button>`);
  const pts=(hp,p)=>{let s='';for(let i=0;i<=40*p;i++){const x=i/40,y=hp*Math.sin(Math.PI*Math.pow(x,.8))*(.75+.25*x);s+=`${20+x*360},${180-y/mx*160} `}return s};
@@ -194,7 +194,7 @@ function vTune(){const c=S.cars[sel],st=stats(c);let h=`<div class="card">${carS
  for(const cat of [...new Set(SLOTS.map(s=>s.c))])h+=`<h3>${cat}</h3><div class="grid">${SLOTS.filter(s=>s.c===cat).map(s=>s.o.map((o,i)=>`<div class="card"><div class="row"><b>${o.n}</b><span class="tag t-${o.t}">${o.t}</span></div><p class="m">${s.n}${o.hp?' · +'+o.hp+' KM':''}${o.hd?' · +'+o.hd+' prow.':''}</p><button class="${c.parts[s.k]===i?'':'pri'}" style="width:100%" onclick="install('${s.k}',${i})">${c.parts[s.k]===i?'✔ Zamontowane':'Kup · '+fmt(o.p)}</button></div>`).join('')).join('')}</div>`;return h}
 function vGarage(){return`<h3>Twoja wystawa</h3><div class="grid">${S.cars.map((c,i)=>{const st=stats(c);return`<div class="card">${carSVG(c)}<div class="row"><b>${st.b.n}</b><span class="m">${st.hp} KM</span></div><div class="row"><span class="m">Wartość: ${fmt(value(c))}</span><span><button onclick="sel=${i};view='tune';render()">⚙️</button> <button onclick="sellCar(${i})">💸</button></span></div></div>`}).join('')}</div>
  <h3>Salon aut</h3><div class="grid">${CARS.slice(1).map(b=>`<div class="card">${carSVG({col:b.col,parts:{},neon:''})}<div class="row"><b>${b.n}</b><span class="m">${b.hp} KM</span></div><p class="m">${b.d}</p><button class="pri" style="width:100%" onclick="buyCar('${b.id}')">Kup · ${fmt(b.p)}</button></div>`).join('')}</div>`}
-function vShop(){return`${scene()}<h3>Ulepszenia warsztatu</h3><div class="grid">${UPS.map(u=>{const n=S.up[u.k],max=n>=u.max;return`<div class="card"><div class="row"><b>${u.n}</b><span class="tag">${n}/${u.max}</span></div><p class="m">${u.d}</p><button class="${max?'':'cy'}" style="width:100%" onclick="buyUp('${u.k}')" ${max?'disabled':''}>${max?'Maks.':'Kup · '+fmt(u.base*(n+1))}</button></div>`}).join('')}</div>
+function vShop(){return`${scene()}<h3>Ulepszenia warsztatu</h3><div class="grid">${UPS.map(u=>{const n=S.up[u.k],max=n>=u.max;return`<div class="card"><div class="row"><b>${u.n}</b><span class="tag">${n}/${u.max}</span></div><p class="m">${u.d}</p><button class="${max?'':'cy'}" style="width:100%" onclick="buyUp('${u.k}')" ${max?'disabled':''}>${max?'Maks.':'Kup · '+fmt(u.base*(u.k==='bays'?n:n+1))}</button></div>`}).join('')}</div>
  <h3>Statystyki</h3><div class="card"><div class="row"><span>Wykonane zlecenia</span><b>${S.done}</b></div><div class="row"><span>Łączny przychód</span><b>${fmt(S.earned)}</b></div><div class="row"><span>Auta w garażu</span><b>${S.cars.length}</b></div><div class="row"><span>Koszty dzienne</span><b>${fmt(150*S.up.bays+S.staff.reduce((a,w)=>a+w.wage,0))}</b></div></div>
  <button onclick="if(confirm('Wrócić do menu?')){$('#game').style.display='none';$('#menu').style.display='flex';$('#cont').disabled=!load()}">☰ Menu główne</button>`}
 </script>
@@ -204,7 +204,7 @@ const DAY=480000,now=()=>Date.now(),mmss=s=>{s=Math.max(0,Math.ceil(s));return M
 const dur=j=>Math.round(j.d*55*(1-S.up.tools*.1))*1000,instT=o=>Math.round(o.p/30*(1-S.up.tools*.1))*1000,gap=()=>Math.max(40,110-S.rep*.5)*1000*rnd(.7,1.3);
 UPS[0].d='+1 stanowisko (równoległe naprawy)';UPS[1].d='-10% czasu napraw i montażu, szersza strefa';UPS[4].d='Sam przyjmuje klientów i naprawia (jakość 65%), 200 zł/dzień';
 function fresh(){const n=now();return{cash:5000,xp:0,rep:10,day:1,earned:0,done:0,up:{bays:1,tools:0,dyno:0,paint:0,mech:0},cars:[{id:'mikro',col:'#8a94a6',parts:{},neon:'#00e5ff',spent:0}],jobs:[],bays:[null],t:n,nc:n+15000,nd:n+DAY}}
-function newCust(at){const L=lvl(),pool=JOBS.filter(j=>j[3]<=L),j=pool[Math.floor(Math.random()*pool.length)];return{id:Math.random().toString(36).slice(2),n:j[0],d:j[2],p:Math.round(j[1]*(1+L*.12)*rnd(.9,1.2)/10)*10,car:['Mikro','Tornado','Pixel','Duster','Combo'][Math.floor(Math.random()*5)],col:COLORS[Math.floor(Math.random()*COLORS.length)],exp:at+rnd(240,420)*1000}}
+function newCust(at){const L=lvl(),pool=JOBS.filter(j=>j[3]<=L),j=pool[Math.floor(Math.random()*pool.length)];return{id:Math.random().toString(36).slice(2),n:j[0],d:j[2],p:Math.round(j[1]*(1+L*.12)*rnd(.9,1.2)/10)*10,car:['Fiat Panda','Opel Astra','Toyota Yaris','Dacia Duster','Renault Clio','Ford Focus','Skoda Octavia'][Math.floor(Math.random()*7)],col:COLORS[Math.floor(Math.random()*COLORS.length)],exp:at+rnd(240,420)*1000}}
 function genJobs(){S.jobs=[newCust(now()),newCust(now())]}
 function migrate(){const n=now();if(!S.bays){S.bays=[];S.nc=n+15000;S.nd=n+DAY;S.t=n}while(S.bays.length<S.up.bays)S.bays.push(null);S.jobs.forEach(j=>{if(!j.exp)j.exp=n+300000;if(!j.col)j.col='#8a94a6'});
  S.bays.forEach((b,i)=>{if(b&&b.q===null){S.jobs.unshift(b.j);S.bays[i]=null}});const lim=n-10800000;if(S.nc<lim)S.nc=lim;if(S.nd<lim)S.nd=lim}
@@ -293,6 +293,22 @@ function scene(){const B=S.bays.length,F=`font-family='Rajdhani,sans-serif'`,man
  else o+=`<g class='clk' onclick='buyP()' opacity='.6'><rect x='775' y='150' width='115' height='135' rx='8' fill='none' stroke='#8b93aa' stroke-dasharray='8 6'/><text x='832' y='215' text-anchor='middle' font-size='30'>🔒</text><text x='832' y='245' text-anchor='middle' font-size='13' fill='#8b93aa' ${F}>Lakiernia · ${fmt(UPS[3].base)}</text></g>`;
  o+=`<g style='animation:bob 2s infinite'>${man(700,'#00b8d4',336)}<rect x='708' y='308' width='12' height='15' fill='#fff'/></g><text x='728' y='326' font-size='14' fill='#fff' font-weight='700' ${F}>📋 ${S.jobs.length} w kolejce</text>`;
  return`<div class='card' style='padding:8px'><svg class='scene' viewBox='0 0 900 360'>${o}</svg><p class='m' style='margin:8px 4px 0'>Kliknij stanowisko, aby naprawić auto lub zatrudnić pracownika. Czerwoni pracownicy z gwiazdkami pracują sami.</p></div>`}
+</script>
+<script>
+/* ===== MODELE: osobne sylwetki + 3 zdjęcia na model (losowane) ===== */
+const SH={mikro:'h',volta:'g',sakura:'c',kaze:'c',alpen:'s',bavaro:'s',thunder:'m',raiden:'c'};
+const B0='M28 122 L38 94 Q60 86 110 82 L150 58 Q200 47 250 58 L292 82 Q350 88 374 102 L378 122 Z',W0='M124 82 L156 62 Q200 54 244 62 L274 82 Z';
+const SHP={g:['M28 122 L30 90 Q40 84 100 82 L128 54 L286 54 L316 82 Q360 86 374 100 L378 122 Z','M136 80 L148 60 L280 60 L304 80 Z'],c:['M28 122 L34 100 Q70 90 120 86 L168 64 Q215 54 262 64 L300 86 Q352 90 376 104 L378 122 Z','M150 84 L176 68 Q215 60 252 68 L282 84 Z'],s:['M26 122 L30 96 Q50 88 100 84 L140 58 L270 58 L316 84 Q358 90 376 102 L378 122 Z','M146 82 L162 62 L264 62 L296 82 Z'],m:['M24 122 L28 92 L120 86 L168 56 L276 56 L300 82 L372 88 L380 122 Z','M176 82 L186 62 L270 62 L288 82 Z'],h:[B0,W0]};
+const _cs=carSVG;carSVG=function(c){const s=_cs(c),k=SH[c.id];return k?s.replace(B0,SHP[k][0]).replace(W0,SHP[k][1]):s};
+let PV={},lv='';const pv=k=>PV[k]!==undefined?PV[k]:(PV[k]=Math.floor(Math.random()*3));
+function rr(k){delete PV[k];render()}
+const BGS=['radial-gradient(circle at 82% 20%,#fff3a0 0 7%,transparent 8%),linear-gradient(#6ec1ff 0,#d9f1ff 56%,#4a4f5a 56%,#3a3e48 100%)','radial-gradient(circle at 18% 22%,#fff8d8 0 5%,transparent 6%),linear-gradient(#070522 0,#2b0b52 56%,#14141f 56%,#0c0c14 100%)','radial-gradient(ellipse at 50% 35%,#4b5366 0,#161a26 75%)'];
+const SKY=[[0,34,50],[40,26,80],[72,40,36],[118,30,90],[152,36,60],[194,28,76],[226,40,44],[272,30,84],[306,36,56],[346,54,70]];
+function photo(c,key,real){const v=pv(key),sk=v<2?`<svg viewBox='0 0 400 100' preserveAspectRatio='none' style='position:absolute;left:0;right:0;bottom:44%;width:100%;height:34%'>${SKY.map(a=>`<rect x='${a[0]}' y='${100-a[2]}' width='${a[1]}' height='${a[2]}' fill='${v?'#1b1246':'#9db6cc'}'/>`).join('')}</svg>`:'';
+ return`<div data-k='${key}' onclick='rr(this.dataset.k)' title='Kliknij, by wylosować inne zdjęcie' style='position:relative;aspect-ratio:2/1;border-radius:10px;overflow:hidden;cursor:pointer;background:${BGS[v]}'>${sk}<div style='position:absolute;left:4%;right:4%;bottom:6%;${v==1?'transform:scaleX(-1)':''}'>${carSVG(c)}</div>${real?`<img src='img/${c.id}-${v+1}.jpg' alt='' loading='lazy' onerror='this.remove()' style='position:absolute;inset:0;width:100%;height:100%;object-fit:cover'>`:''}<span style='position:absolute;right:8px;top:6px;font-size:12px;background:#000a;padding:2px 8px;border-radius:9px'>📷 ${v+1}/3</span></div>`}
+function goTune(i){sel=i;view='tune';render()}
+function vGarage(){return`<h3>Twoja wystawa</h3><div class='grid'>${S.cars.map((c,i)=>{const st=stats(c);return`<div class='card'>${photo(c,'o'+i,false)}<div class='row' style='margin-top:8px'><b>${st.b.n}</b><span class='m'>${st.hp} KM</span></div><div class='row'><span class='m'>Wartość: ${fmt(value(c))}</span><span><button onclick='goTune(${i})'>⚙️</button> <button onclick='sellCar(${i})'>💸</button></span></div></div>`}).join('')}</div><h3>Salon aut</h3><p class='m'>3 zdjęcia na model, losowane za każdym razem. Kliknij zdjęcie, by wylosować inne.</p><div class='grid'>${CARS.slice(1).map(b=>`<div class='card'>${photo({id:b.id,col:b.col,parts:{},neon:''},'s'+b.id,true)}<div class='row' style='margin-top:8px'><b>${b.n}</b><span class='m'>${b.hp} KM</span></div><p class='m'>${b.d}</p><button class='pri' style='width:100%' data-id='${b.id}' onclick='buyCar(this.dataset.id)'>Kup · ${fmt(b.p)}</button></div>`).join('')}</div>`}
+const _r5=render;render=function(){if(view!==lv){PV={};lv=view}_r5()};
 </script>
 </body>
 </html>
