@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Garage Tycoon – Warsztat Tuningowy</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0d14;--card:#151926;--card2:#1d2233;--tx:#e8ecf5;--mut:#8b93aa;--red:#ff2d55;--cy:#00e5ff;--ok:#2ee59d;--warn:#ffcc33;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:radial-gradient(circle at 20% 0,#1a1030 0,var(--bg) 55%) fixed;color:var(--tx);font-family:Rajdhani,system-ui,sans-serif;font-size:17px;min-height:100vh}
+h1,h2,h3,.o{font-family:Orbitron,Rajdhani,sans-serif;letter-spacing:.04em}
+button{font:inherit;cursor:pointer;border:0;color:var(--tx);background:var(--card2);padding:10px 16px;border-radius:10px;transition:.15s}
+button:hover{transform:translateY(-2px);box-shadow:0 4px 18px #00e5ff33}button:active{transform:scale(.96)}
+button:disabled{opacity:.4;pointer-events:none}
+.pri{background:linear-gradient(135deg,var(--red),#c2185b);font-weight:700}.cy{background:linear-gradient(135deg,#00b8d4,#0077b6);font-weight:700}
+#menu{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:20px}
+#menu h1{font-size:clamp(30px,8vw,64px);margin:0;background:linear-gradient(90deg,var(--red),var(--cy));-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 30px #ff2d5533}
+#menu p{color:var(--mut);margin:0 0 14px}#menu button{width:260px;padding:14px;font-size:19px}
+#game{display:none;max-width:980px;margin:auto;padding:0 12px 90px}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;padding:10px 0;background:#0b0d14ee;backdrop-filter:blur(8px)}
+.chip{background:var(--card);border:1px solid #ffffff14;padding:6px 12px;border-radius:99px;font-weight:700}.chip b{color:var(--cy)}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;gap:6px;padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px));background:#0b0d14f2;border-top:1px solid #ffffff14;z-index:6}
+nav button{flex:1;max-width:160px;background:var(--card);font-size:14px;padding:8px 4px}nav button span{display:block;font-size:20px}
+nav button.on{background:linear-gradient(135deg,var(--red),#c2185b);box-shadow:0 0 16px #ff2d5566}
+.card{background:var(--card);border:1px solid #ffffff12;border-radius:16px;padding:14px;margin:10px 0;animation:in .3s}
+@keyframes in{from{opacity:0;transform:translateY(10px)}}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.m{color:var(--mut);font-size:15px}.g{color:var(--ok)}.r{color:var(--red)}
+.bar{height:8px;background:#0006;border-radius:9px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--cy),var(--red))}
+.tag{font-size:12px;padding:2px 8px;border-radius:9px;background:#fff1;margin-left:4px}
+.t-Race{color:var(--red)}.t-Sport{color:var(--warn)}.t-Street{color:var(--cy)}
+.sw{display:inline-block;width:30px;height:30px;border-radius:50%;margin:3px;border:2px solid #fff3;cursor:pointer;padding:0}
+#modalbg{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;z-index:20;padding:16px}
+#modal{background:var(--card);border:1px solid var(--cy);border-radius:18px;padding:20px;max-width:480px;width:100%;box-shadow:0 0 40px #00e5ff33;animation:in .25s}
+#toasts{position:fixed;top:calc(70px + env(safe-area-inset-top,0px));right:12px;z-index:30;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--card2);border-left:4px solid var(--cy);padding:10px 14px;border-radius:8px;animation:in .3s;max-width:300px}
+.zone{position:relative;height:36px;background:#0008;border-radius:10px;margin:16px 0;overflow:hidden}
+#zn{position:absolute;top:0;bottom:0;background:#2ee59d55;border:2px solid var(--ok)}#mk{position:absolute;top:0;bottom:0;width:6px;background:var(--red);box-shadow:0 0 10px var(--red)}
+svg.car{width:100%;max-height:230px}
+.scene{width:100%;border-radius:12px;display:block}.clk{cursor:pointer;transition:.15s}.clk:hover{filter:brightness(1.3)}
+@keyframes walk{0%,100%{transform:translateX(0)}50%{transform:translateX(120px)}}@keyframes flick{0%,100%{opacity:1}50%{opacity:.75}55%{opacity:1}60%{opacity:.4}}@keyframes needle{0%,100%{transform:rotate(-60deg)}50%{transform:rotate(55deg)}}@keyframes spray{0%,100%{opacity:.1}50%{opacity:.8}}@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+.mech{animation:walk 6s ease-in-out infinite}
+.stl{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start;margin:10px 0}
+.st{border:4px solid var(--tx);border-radius:6px;padding:10px;display:flex;flex-direction:column;justify-content:space-between;gap:8px;cursor:pointer;background:#ffffff06;min-width:190px;transition:.15s;overflow:hidden}
+.st:hover{border-color:var(--cy);box-shadow:0 0 20px #00e5ff44}
+.st1{flex:285 1 0;aspect-ratio:2/3}.st2{flex:478 1 0;aspect-ratio:1/1}.st3{flex:488 1 0;aspect-ratio:1/1}
+.st.lock{opacity:.5;border-style:dashed;align-items:center;justify-content:center;text-align:center;border-color:var(--mut)}.st.nx{opacity:1}
+@media(max-width:640px){.st{flex:1 1 100%!important;aspect-ratio:auto!important;min-height:220px}}
+button{box-shadow:0 5px 0 #05060a,0 9px 16px #0007;border-top:1px solid #ffffff22}
+button:hover{transform:translateY(-2px);box-shadow:0 7px 0 #05060a,0 13px 22px #00e5ff44}
+button:active{transform:translateY(4px);box-shadow:0 1px 0 #05060a}
+.pri{box-shadow:0 5px 0 #6b0c27,0 9px 16px #0007}.cy{box-shadow:0 5px 0 #003e66,0 9px 16px #0007}
+.card{box-shadow:0 7px 0 #07080e,0 14px 26px #000a;border-top-color:#ffffff22;transition:transform .2s}
+.card:hover{transform:perspective(900px) rotateX(2deg) translateY(-3px)}
+nav{box-shadow:0 -6px 20px #000a}nav button.on{transform:translateY(-4px)}
+.st{box-shadow:0 7px 0 #07080e,0 14px 26px #000a}
+#menu button{border-radius:14px}
+#menu h1{filter:drop-shadow(0 3px 0 #8a1030) drop-shadow(0 7px 0 #4a0a1a) drop-shadow(0 16px 14px #000);transform:perspective(600px) rotateX(14deg)}
+#menu::before{content:'';position:fixed;left:-60%;right:-60%;bottom:0;height:55vh;z-index:-1;background:linear-gradient(#0000,#0b0d14f0 92%),repeating-linear-gradient(90deg,#00e5ff2a 0 2px,#0000 2px 64px),repeating-linear-gradient(0deg,#ff2d5522 0 2px,#0000 2px 64px);transform:perspective(380px) rotateX(62deg);transform-origin:bottom;animation:grid 3s linear infinite}
+@keyframes grid{to{background-position:0 0,0 0,0 64px}}
+@media(max-width:520px){nav button{font-size:11px;padding:6px 1px}nav button span{font-size:17px}}
+</style>
+</head>
+<body>
+<div id="menu">
+  <h1>GARAGE<br>TYCOON</h1><p>Zbuduj imperium tuningowe od zera</p>
+  <button class="pri" onclick="newGame()">▶ Nowa gra</button>
+  <button class="cy" id="cont" onclick="cont()">⟳ Kontynuuj</button>
+  <button onclick="help()">❓ Jak grać</button>
+  <button onclick="toggleMute(this)">🔊 Dźwięk: wł.</button>
+</div>
+<div id="game">
+  <header><h2 class="o" style="margin:0;font-size:18px">GARAGE TYCOON</h2><div class="row" id="stats" style="gap:6px"></div></header>
+  <main id="main"></main>
+  <nav id="nav"></nav>
+</div>
+<div id="modalbg"><div id="modal"></div></div><div id="toasts"></div>
+<script>
+/* ===== DANE ===== */
+const CARS=[
+ {id:'mikro',n:'Fiat Punto 1.2',p:4000,hp:70,hd:35,col:'#8a94a6',d:'Zwykły hatchback na start'},
+ {id:'volta',n:'Volkswagen Golf GTI',p:22000,hp:200,hd:60,col:'#e63946',d:'Hot-hatch z Europy'},
+ {id:'sakura',n:'Nissan Silvia S15',p:30000,hp:220,hd:75,col:'#f4a261',d:'Król driftu (JDM)'},
+ {id:'kaze',n:'Mazda RX-7 FD',p:38000,hp:280,hd:70,col:'#3a86ff',d:'Japoński sportowiec'},
+ {id:'alpen',n:'Audi S3 Quattro',p:52000,hp:300,hd:80,col:'#c0c8d8',d:'Napęd 4x4, bezlitosna trakcja'},
+ {id:'bavaro',n:'BMW M3 E46',p:55000,hp:310,hd:78,col:'#1d3557',d:'Niemiecka precyzja'},
+ {id:'thunder',n:'Dodge Charger SRT 392',p:60000,hp:450,hd:45,col:'#111',d:'Muscle car, 6.4 V8'},
+ {id:'raiden',n:'Nissan Skyline GT-R R34',p:65000,hp:330,hd:82,col:'#7b2cbf',d:'Legenda tuningu (JDM)'}];
+const SLOTS=[
+ {k:'chip',c:'Silnik',n:'Chip tuning',o:[{n:'Stage 1',t:'Street',p:1200,hp:15}]},
+ {k:'exh',c:'Silnik',n:'Układ wydechowy',o:[{n:'Sportowy',t:'Sport',p:1800,hp:20}]},
+ {k:'turbo',c:'Silnik',n:'Turbo',o:[{n:'Turbo Big',t:'Race',p:6000,hp:60}]},
+ {k:'susp',c:'Zawieszenie',n:'Gwinty',o:[{n:'Gwinty Sport',t:'Sport',p:2500,hd:12}]},
+ {k:'stab',c:'Zawieszenie',n:'Stabilizatory',o:[{n:'Stabilizatory',t:'Street',p:1500,hd:7}]},
+ {k:'brk',c:'Hamulce',n:'Hamulce',o:[{n:'Tarcze Sport',t:'Sport',p:2000,hd:8},{n:'Zestaw Race',t:'Race',p:5000,hd:15}]},
+ {k:'whl',c:'Felgi',n:'Felgi i opony',o:[{n:'Złote 18"',t:'Sport',p:2200,hd:4},{n:'Czerwone 19"',t:'Race',p:4500,hd:8}]},
+ {k:'spo',c:'Nadwozie',n:'Spoiler',o:[{n:'Lotka',t:'Street',p:1800},{n:'Duże skrzydło',t:'Race',p:3500,hd:3}]},
+ {k:'kit',c:'Nadwozie',n:'Body kit',o:[{n:'Progi i zderzaki',t:'Sport',p:4000,hd:2}]},
+ {k:'neon',c:'Wygląd',n:'Neony',o:[{n:'Neon LED',t:'Street',p:1500}]},
+ {k:'aud',c:'Wnętrze',n:'Audio',o:[{n:'Nagłośnienie Pro',t:'Street',p:2000}]}];
+const COLORS=['#e63946','#f4a261','#ffd60a','#2ee59d','#3a86ff','#7b2cbf','#ff2d9b','#c0c8d8','#111111','#ffffff'];
+const JOBS=[['Wymiana oleju',250,1,0],['Hamulce',600,2,0],['Diagnostyka',400,2,0],['Zawieszenie',900,3,2],['Naprawa silnika',2200,4,3],['Lakierowanie',1800,3,4]];
+const UPS=[
+ {k:'bays',n:'Dodatkowe stanowisko',d:'+1 zlecenie dziennie',base:3000,max:4},
+ {k:'tools',n:'Lepsze narzędzia',d:'Szersza strefa w minigrze',base:2500,max:4},
+ {k:'dyno',n:'Hamownia',d:'Pomiar mocy przed i po tuningu',base:6000,max:1},
+ {k:'paint',n:'Lakiernia',d:'Zmiana koloru auta',base:4000,max:1},
+ {k:'mech',n:'Zatrudnij mechanika',d:'Robi 1 zlecenie dziennie (pensja 200 zł/dzień)',base:1500,max:3}];
+/* ===== STAN ===== */
+let S,view='jobs',sel=0,mute=false,G=null;
+const $=s=>document.querySelector(s),fmt=n=>Math.round(n).toLocaleString('pl-PL')+' zł',rnd=(a,b)=>a+Math.random()*(b-a);
+const lvl=()=>Math.floor((1+Math.sqrt(1+S.xp/15))/2);
+function fresh(){return{cash:5000,xp:0,rep:10,day:1,earned:0,done:0,up:{bays:1,tools:0,dyno:0,paint:0,mech:0},cars:[{id:'mikro',col:'#8a94a6',parts:{},neon:'#00e5ff',spent:0}],jobs:[]}}
+function save(){try{localStorage.setItem('gt_save',JSON.stringify(S))}catch(e){}}
+function load(){try{return JSON.parse(localStorage.getItem('gt_save'))}catch(e){return null}}
+/* ===== DŹWIĘK ===== */
+let AC;function beep(f=520,d=.08,t='square'){if(mute)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.type=t;o.frequency.value=f;g.gain.value=.05;o.connect(g);g.connect(AC.destination);o.start();g.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+d);o.stop(AC.currentTime+d)}catch(e){}}
+function toggleMute(b){mute=!mute;b.textContent='🔊 Dźwięk: '+(mute?'wył.':'wł.')}
+/* ===== UI POMOCNICZE ===== */
+function toast(t){const e=document.createElement('div');e.className='toast';e.textContent=t;$('#toasts').append(e);setTimeout(()=>e.remove(),3200)}
+function modal(h){$('#modal').innerHTML=h;$('#modalbg').style.display='flex'}
+function closeModal(){$('#modalbg').style.display='none';G&&(G.stop(),G=null)}
+function help(){modal(`<h3>Jak grać</h3><ol class="m"><li>W zakładce <b>Zlecenia</b> przyjmuj prace i zatrzymuj suwak w zielonej strefie (3 próby).</li><li>Zarabiaj, zdobywaj reputację i poziomy — odblokują się trudniejsze zlecenia.</li><li>W <b>Garażu</b> kupuj sportowe auta, w <b>Tuningu</b> montuj części, maluj i dodawaj neony.</li><li>W <b>Warsztacie</b> rozbudowuj stanowiska, hamownię i zatrudniaj mechaników.</li><li>Kliknij <b>Następny dzień</b>, aby odświeżyć zlecenia (płacisz czynsz i pensje).</li></ol><button class="pri" onclick="closeModal()">Jasne!</button>`)}
+/* ===== START ===== */
+function newGame(){S=fresh();genJobs();sel=0;view='jobs';start();help()}
+function cont(){const s=load();if(!s){toast('Brak zapisu');return}S=s;start()}
+function start(){$('#menu').style.display='none';$('#game').style.display='block';render()}
+$('#cont').disabled=!load();
+/* ===== LOGIKA ===== */
+function genJobs(){const L=lvl(),pool=JOBS.filter(j=>j[3]<=L);S.jobs=[];for(let i=0;i<2+S.up.bays;i++){const j=pool[Math.floor(Math.random()*pool.length)];S.jobs.push({n:j[0],d:j[2],p:Math.round(j[1]*(1+L*.12)*rnd(.9,1.2)/10)*10,car:['Mikro','Tornado','Pixel','Duster','Combo'][Math.floor(Math.random()*5)]})}}
+function gain(cash,xp,rep=0){const o=lvl();S.cash+=cash;S.earned+=Math.max(0,cash);S.xp+=xp;S.rep=Math.max(0,S.rep+rep);if(lvl()>o){toast('🏆 Awans! Poziom '+lvl());beep(900,.3,'sine')}}
+function nextDay(){let rent=150*S.up.bays+200*S.up.mech;S.day++;S.cash-=rent;let msg='Dzień '+S.day+': koszty '+fmt(rent);
+ for(let i=0;i<S.up.mech&&S.jobs.length;i++){const j=S.jobs.shift();gain(Math.round(j.p*.96),j.d*5);S.done++}
+ const r=Math.random();if(r<.12){S.cash-=300;msg+=' · 🚔 Kontrola: mandat 300 zł'}else if(r<.24){S.cash+=800;msg+=' · 🎁 Promocja u dostawcy: +800 zł'}else if(r<.34){S.rep+=5;msg+=' · 📸 Influencer w warsztacie: +5 reputacji'}else if(r<.4){S.cash-=400;msg+=' · 🔧 Awaria narzędzia: -400 zł'}
+ genJobs();toast(msg);beep(380,.15);render()}
+function play(i){const j=S.jobs[i];let pos=0,dir=1,raf,r=0,sc=[];const spd=1.1+j.d*.3,z=Math.min(.45,Math.max(.1,.26-j.d*.03+S.up.tools*.04));
+ const step=()=>{pos+=dir*spd*.012;if(pos>1){pos=1;dir=-1}if(pos<0){pos=0;dir=1}const m=$('#mk');if(m)m.style.left=`calc(${pos*100}% - 3px)`;raf=requestAnimationFrame(step)};
+ G={stop:()=>cancelAnimationFrame(raf),hit(){const d=Math.abs(pos-.5),q=d<=z/2?1:Math.max(0,1-(d-z/2)*3);sc.push(q);r++;beep(300+q*500,.1);
+  if(r>=3){G.stop();G=null;const q=sc.reduce((a,b)=>a+b)/3,pay=Math.round(j.p*(.6+.6*q));gain(pay,j.d*12,q>.7?2:q<.35?-2:0);S.done++;S.jobs.splice(i,1);
+  modal(`<h3>${q>.85?'⭐ Perfekcyjnie!':q>.5?'👍 Dobra robota':'😬 Słabo...'}</h3><p>Jakość: <b>${Math.round(q*100)}%</b><br>Zarobek: <b class="g">${fmt(pay)}</b></p><button class="pri" onclick="closeModal();render()">OK</button>`);render()}
+  else $('#rn').textContent=r+1}};
+ modal(`<h3>${j.n}</h3><p class="m">Zatrzymaj suwak w zielonej strefie. Próba <b id="rn">1</b>/3 (spacja lub przycisk)</p><div class="zone"><div id="zn" style="left:${(.5-z/2)*100}%;width:${z*100}%"></div><div id="mk"></div></div><button class="pri" style="width:100%;font-size:20px;padding:14px" onclick="G&&G.hit()">STOP!</button>`);step()}
+document.addEventListener('keydown',e=>{if(e.code==='Space'&&G){e.preventDefault();G.hit()}});
+function stats(c){const b=CARS.find(x=>x.id===c.id);let hp=b.hp,hd=b.hd,look=0;for(const s of SLOTS){const o=s.o[c.parts[s.k]];if(o){hp+=o.hp||0;hd+=o.hd||0;if(['spo','kit','neon','whl'].includes(s.k))look+=1}}
+ hp=Math.round(hp*(1+(c.parts.turbo!==undefined&&c.parts.chip!==undefined?.05:0)));return{hp,hd:Math.min(100,hd),look,t:Math.max(2.4,14.5-hp/36).toFixed(1),b}}
+function value(c){const b=CARS.find(x=>x.id===c.id);return Math.round(b.p*.75+c.spent*.55)}
+function install(k,oi){const c=S.cars[sel],o=SLOTS.find(s=>s.k===k).o[oi];if(c.parts[k]===oi){toast('Już zamontowane');return}if(S.cash<o.p){toast('❌ Za mało gotówki');return}S.cash-=o.p;c.spent+=o.p;c.parts[k]=oi;gain(0,Math.round(o.p/100));beep(700,.12,'sawtooth');toast('🔧 Zamontowano: '+o.n);render()}
+function paint(col){const c=S.cars[sel];if(S.cash<300){toast('❌ Za mało gotówki');return}S.cash-=300;c.spent+=300;c.col=col;beep(600,.1,'sine');render()}
+function buyCar(id){const b=CARS.find(x=>x.id===id);if(S.cash<b.p){toast('❌ Za mało gotówki');return}S.cash-=b.p;S.cars.push({id,col:b.col,parts:{},neon:'#00e5ff',spent:0});sel=S.cars.length-1;beep(800,.25,'sine');toast('🚗 Kupiono '+b.n+'!');render()}
+function sellCar(i){if(S.cars.length<2){toast('Musisz zostawić jedno auto');return}const c=S.cars[i],v=value(c);modal(`<h3>Sprzedać ${CARS.find(x=>x.id===c.id).n}?</h3><p>Wycena: <b class="g">${fmt(v)}</b></p><div class="row"><button onclick="closeModal()">Anuluj</button><button class="pri" onclick="doSell(${i},${v})">Sprzedaj</button></div>`)}
+function doSell(i,v){S.cars.splice(i,1);sel=0;gain(v,0);closeModal();beep(500,.2,'sine');render()}
+function buyUp(k){const u=UPS.find(x=>x.k===k),n=S.up[k],cost=u.base*(k==='bays'?n:n+1);if(n>=u.max||S.cash<cost){toast('❌ Za mało gotówki');return}S.cash-=cost;S.up[k]++;beep(850,.2,'sine');toast('✅ '+u.n);render()}
+function dyno(){const c=S.cars[sel],a=CARS.find(x=>x.id===c.id).hp,b=stats(c).hp,mx=Math.max(b,a)*1.15;let t=0;
+ modal(`<h3>Hamownia</h3><svg viewBox="0 0 400 200" style="width:100%;background:#0006;border-radius:10px"><polyline id="l0" fill="none" stroke="#8b93aa" stroke-width="3"/><polyline id="l1" fill="none" stroke="#ff2d55" stroke-width="3"/></svg><p>Seryjnie: <b>${a} KM</b> → Teraz: <b class="g">${b} KM</b> (<span class="r">+${b-a}</span>)</p><button class="pri" onclick="closeModal()">Zamknij</button>`);
+ const pts=(hp,p)=>{let s='';for(let i=0;i<=40*p;i++){const x=i/40,y=hp*Math.sin(Math.PI*Math.pow(x,.8))*(.75+.25*x);s+=`${20+x*360},${180-y/mx*160} `}return s};
+ const f=()=>{t+=.02;$('#l0')&&($('#l0').setAttribute('points',pts(a,Math.min(1,t))),$('#l1').setAttribute('points',pts(b,Math.min(1,t))),beep(150+t*500,.03,'sawtooth'),t<1&&requestAnimationFrame(f))};f()}
+/* ===== RYSOWANIE AUTA ===== */
+function carSVG(c){const p=c.parts,w=p.whl===1?'#ff2d55':p.whl===0?'#ffcc33':'#aab',sp=p.spo;
+ const wh=x=>`<circle cx="${x}" cy="124" r="29" fill="#0a0a0a"/><circle cx="${x}" cy="124" r="20" fill="${w}"/><circle cx="${x}" cy="124" r="8" fill="#222"/>`+[0,60,120].map(a=>`<line x1="${x}" y1="124" x2="${x}" y2="104" stroke="#222" stroke-width="3" transform="rotate(${a} ${x} 124)"/>`).join('');
+ return`<svg class="car" viewBox="0 0 400 170"><defs><filter id="bl"><feGaussianBlur stdDeviation="9"/></filter></defs>
+ ${p.neon!==undefined?`<ellipse cx="200" cy="152" rx="175" ry="12" fill="${c.neon}" filter="url(#bl)"/><rect x="40" y="148" width="320" height="3" fill="${c.neon}"/>`:''}
+ <path d="M28 122 L38 94 Q60 86 110 82 L150 58 Q200 47 250 58 L292 82 Q350 88 374 102 L378 122 Z" fill="${c.col}" stroke="#0006" stroke-width="2"/>
+ <path d="M124 82 L156 62 Q200 54 244 62 L274 82 Z" fill="#0d1b2a" opacity=".9"/><path d="M200 56 L200 82" stroke="${c.col}" stroke-width="3"/>
+ <rect x="360" y="98" width="16" height="7" fill="#ffe97a"/><rect x="28" y="98" width="12" height="7" fill="#ff2d55"/>
+ ${p.kit!==undefined?`<path d="M28 122 L378 122 L372 132 L36 132 Z" fill="#111"/><path d="M372 110 L384 120 L372 124Z" fill="#111"/>`:''}
+ ${sp===0?`<rect x="30" y="86" width="26" height="5" fill="#111"/>`:''}${sp===1?`<rect x="14" y="62" width="56" height="6" rx="2" fill="#111"/><rect x="34" y="66" width="5" height="26" fill="#111"/><rect x="48" y="66" width="5" height="26" fill="#111"/>`:''}
+ ${wh(102)}${wh(302)}</svg>`}
+/* ===== SCENA 2D WARSZTATU ===== */
+function scene(){const B=S.up.bays;let o=`<defs><linearGradient id="wl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c2136"/><stop offset="1" stop-color="#101423"/></linearGradient></defs><rect width="900" height="360" fill="url(#wl)"/>`;
+ for(let x=0;x<900;x+=60)o+=`<line x1="${x}" y1="60" x2="${x}" y2="285" stroke="#ffffff0a"/>`;
+ for(let y=90;y<285;y+=40)o+=`<line x1="0" y1="${y}" x2="900" y2="${y}" stroke="#ffffff0a"/>`;
+ o+=`<rect y="285" width="900" height="75" fill="#0c0e18"/><rect y="285" width="900" height="4" fill="#ff2d55" opacity=".7"/>`;
+ o+=`<text x="450" y="40" text-anchor="middle" font-family="Orbitron,sans-serif" font-weight="800" font-size="24" fill="#00e5ff" style="animation:flick 4s infinite;filter:drop-shadow(0 0 8px #00e5ff)">GARAGE TYCOON · TUNING</text>`;
+ for(let i=0;i<4;i++){const x=20+i*155;
+  if(i<B){const c=S.cars[i];o+=`<polygon points="${x+60},70 ${x+90},70 ${x+140},285 ${x+10},285" fill="#ffe97a" opacity=".05"/><rect x="${x+55}" y="62" width="40" height="6" rx="3" fill="#ffe97a"/>`;
+   o+=`<rect x="${x+10}" y="208" width="9" height="77" fill="#5a6478"/><rect x="${x+131}" y="208" width="9" height="77" fill="#5a6478"/>`;
+   if(c){o+=`<g class="clk" onclick="sel=${i};view='tune';render()">${carSVG(c).replace('class="car"',`x="${x+5}" y="150" width="140" height="60"`)}<rect x="${x+5}" y="206" width="140" height="7" rx="3" fill="#8b93aa"/></g><text x="${x+75}" y="352" text-anchor="middle" font-size="13" fill="#8b93aa" font-family="Rajdhani,sans-serif">${CARS.find(y=>y.id===c.id).n}</text>`}
+   else o+=`<rect x="${x+5}" y="262" width="140" height="7" rx="3" fill="#5a6478"/><text x="${x+75}" y="352" text-anchor="middle" font-size="13" fill="#566" font-family="Rajdhani,sans-serif">wolne stanowisko</text>`}
+  else{const nx=i===B;o+=`<g class="${nx?'clk':''}" ${nx?`onclick="buyUp('bays')"`:''} opacity="${nx?1:.35}"><rect x="${x+5}" y="130" width="140" height="155" rx="10" fill="none" stroke="#8b93aa" stroke-dasharray="8 6"/><text x="${x+75}" y="205" text-anchor="middle" font-size="40" fill="#8b93aa">${nx?'＋':'🔒'}</text><text x="${x+75}" y="235" text-anchor="middle" font-size="13" fill="#8b93aa" font-family="Rajdhani,sans-serif">${nx?'Stanowisko · '+fmt(UPS[0].base*B):'zablokowane'}</text></g>`}}
+ /* hamownia */
+ if(S.up.dyno){o+=`<rect x="650" y="150" width="115" height="135" rx="8" fill="#0a1a22" stroke="#00e5ff"/><circle cx="707" cy="185" r="24" fill="#06121a" stroke="#00e5ff"/><line x1="707" y1="185" x2="707" y2="166" stroke="#ff2d55" stroke-width="3" style="transform-origin:707px 185px;animation:needle 2.5s ease-in-out infinite"/><ellipse cx="685" cy="262" rx="16" ry="9" fill="#5a6478"/><ellipse cx="730" cy="262" rx="16" ry="9" fill="#5a6478"/><text x="707" y="140" text-anchor="middle" font-size="13" fill="#00e5ff" font-family="Orbitron,sans-serif">HAMOWNIA</text>`}
+ else o+=`<g class="clk" onclick="buyUp('dyno')" opacity=".6"><rect x="650" y="150" width="115" height="135" rx="8" fill="none" stroke="#8b93aa" stroke-dasharray="8 6"/><text x="707" y="215" text-anchor="middle" font-size="30">🔒</text><text x="707" y="245" text-anchor="middle" font-size="13" fill="#8b93aa" font-family="Rajdhani,sans-serif">Hamownia · ${fmt(UPS[2].base)}</text></g>`;
+ /* lakiernia */
+ if(S.up.paint){const pc=(S.cars[0]||{}).col||'#e63946';o+=`<rect x="775" y="150" width="115" height="135" rx="8" fill="#1a1020" stroke="#ff2d55"/><rect x="800" y="215" width="65" height="45" rx="10" fill="${pc}"/><rect x="782" y="185" width="14" height="7" fill="#8b93aa"/>`+[0,1,2].map(k=>`<circle cx="${806+k*10}" cy="${190+k*8}" r="${3+k}" fill="${pc}" style="animation:spray 1.2s ${k*.2}s infinite"/>`).join('')+`<text x="832" y="140" text-anchor="middle" font-size="13" fill="#ff2d55" font-family="Orbitron,sans-serif">LAKIERNIA</text>`}
+ else o+=`<g class="clk" onclick="buyUp('paint')" opacity=".6"><rect x="775" y="150" width="115" height="135" rx="8" fill="none" stroke="#8b93aa" stroke-dasharray="8 6"/><text x="832" y="215" text-anchor="middle" font-size="30">🔒</text><text x="832" y="245" text-anchor="middle" font-size="13" fill="#8b93aa" font-family="Rajdhani,sans-serif">Lakiernia · ${fmt(UPS[3].base)}</text></g>`;
+ /* szef i mechanicy */
+ const man=(x,col,y=336)=>`<circle cx="${x}" cy="${y-38}" r="7" fill="#f2c9a0"/><path d="M${x-8} ${y-40} a8 8 0 0 1 16 0z" fill="${col}"/><rect x="${x-8}" y="${y-30}" width="16" height="22" rx="4" fill="${col}"/><rect x="${x-6}" y="${y-9}" width="5" height="10" fill="#223"/><rect x="${x+1}" y="${y-9}" width="5" height="10" fill="#223"/>`;
+ o+=`<g style="animation:bob 2s infinite">${man(628,'#00b8d4')}<rect x="636" y="308" width="12" height="15" fill="#fff"/></g><text x="600" y="262" font-size="14" fill="#fff" font-family="Rajdhani,sans-serif" font-weight="700">📋 ${S.jobs.length} zleceń czeka</text>`;
+ for(let m=0;m<S.up.mech;m++)o+=`<g class="mech" style="animation-delay:${-m*2}s;animation-duration:${5+m}s">${man(60+m*200,'#ff2d55')}<rect x="${60+m*200+8}" y="312" width="3" height="14" fill="#aab"/></g>`;
+ return`<div class="card" style="padding:8px"><svg class="scene" viewBox="0 0 900 360">${o}</svg><p class="m" style="margin:8px 4px 0">Kliknij auto na podnośniku, aby je tuningować, albo puste pole, aby rozbudować warsztat.</p></div>`}
+/* ===== WIDOKI ===== */
+const TABS=[['jobs','🔧','Zlecenia'],['tune','⚙️','Tuning'],['garage','🏁','Garaż'],['shop','🏭','Warsztat']];
+function render(){
+ $('#stats').innerHTML=`<span class="chip">💰 <b>${fmt(S.cash)}</b></span><span class="chip">⭐ Poz. <b>${lvl()}</b></span><span class="chip">📣 Rep. <b>${S.rep}</b></span><span class="chip">📅 Dzień <b>${S.day}</b></span>`;
+ $('#nav').innerHTML=TABS.map(t=>`<button class="${view===t[0]?'on':''}" onclick="view='${t[0]}';beep(440,.05);render()"><span>${t[1]}</span>${t[2]}</button>`).join('');
+ $('#main').innerHTML=({jobs:vJobs,tune:vTune,garage:vGarage,shop:vShop,staff:vStaff,race:vRace})[view]();save()}
+function vJobs(){const xp=S.xp%120;return`<div class="card"><div class="row"><b>Postęp do poz. ${lvl()+1}</b><span class="m">${xp}/120 XP</span></div><div class="bar"><i style="width:${xp/1.2}%"></i></div></div>
+ <div class="row"><h3>Dzisiejsze zlecenia</h3><button class="cy" onclick="nextDay()">⏭ Następny dzień</button></div>
+ <div class="grid">${S.jobs.map((j,i)=>`<div class="card"><div class="row"><b>${j.n}</b><span class="g">${fmt(j.p)}</span></div><p class="m">Klient: ${j.car} · Trudność: ${'★'.repeat(j.d)}${'☆'.repeat(4-j.d)}</p><button class="pri" style="width:100%" onclick="play(${i})">Rozpocznij</button></div>`).join('')||'<div class="card m">Brak zleceń — kliknij „Następny dzień”.</div>'}</div>`}
+function vTune(){const c=S.cars[sel],st=stats(c);let h=`<div class="card">${carSVG(c)}<div class="row"><h3 style="margin:0">${st.b.n}</h3><select onchange="sel=+this.value;render()" style="background:var(--card2);color:var(--tx);border:0;padding:8px;border-radius:8px;font:inherit">${S.cars.map((x,i)=>`<option value="${i}" ${i==sel?'selected':''}>${CARS.find(y=>y.id===x.id).n}</option>`).join('')}</select></div>
+ <div class="grid" style="margin-top:8px">${[['Moc',st.hp+' KM',st.hp/5],['Prowadzenie',st.hd+'/100',st.hd],['0–100',st.t+' s',100-st.t*6],['Wygląd',st.look+'/4',st.look*25]].map(s=>`<div><div class="row"><span class="m">${s[0]}</span><b>${s[1]}</b></div><div class="bar"><i style="width:${Math.min(100,s[2])}%"></i></div></div>`).join('')}</div>
+ <div class="row" style="margin-top:12px"><button class="cy" ${S.up.dyno?'':'disabled'} onclick="dyno()">📈 Hamownia${S.up.dyno?'':' (kup w Warsztacie)'}</button></div></div>`;
+ h+=`<div class="card"><b>🎨 Lakier (300 zł)</b> ${S.up.paint?'':'<span class="m">– kup lakiernię w Warsztacie</span>'}<div style="${S.up.paint?'':'opacity:.4;pointer-events:none'}">${COLORS.map(x=>`<button class="sw" style="background:${x}" onclick="paint('${x}')"></button>`).join('')}</div>
+ ${c.parts.neon!==undefined?`<div class="m">Kolor neonu: ${['#00e5ff','#ff2d55','#2ee59d','#ffcc33','#c77dff'].map(x=>`<button class="sw" style="background:${x}" onclick="S.cars[sel].neon='${x}';render()"></button>`).join('')}</div>`:''}</div>`;
+ for(const cat of [...new Set(SLOTS.map(s=>s.c))])h+=`<h3>${cat}</h3><div class="grid">${SLOTS.filter(s=>s.c===cat).map(s=>s.o.map((o,i)=>`<div class="card"><div class="row"><b>${o.n}</b><span class="tag t-${o.t}">${o.t}</span></div><p class="m">${s.n}${o.hp?' · +'+o.hp+' KM':''}${o.hd?' · +'+o.hd+' prow.':''}</p><button class="${c.parts[s.k]===i?'':'pri'}" style="width:100%" onclick="install('${s.k}',${i})">${c.parts[s.k]===i?'✔ Zamontowane':'Kup · '+fmt(o.p)}</button></div>`).join('')).join('')}</div>`;return h}
+function vGarage(){return`<h3>Twoja wystawa</h3><div class="grid">${S.cars.map((c,i)=>{const st=stats(c);return`<div class="card">${carSVG(c)}<div class="row"><b>${st.b.n}</b><span class="m">${st.hp} KM</span></div><div class="row"><span class="m">Wartość: ${fmt(value(c))}</span><span><button onclick="sel=${i};view='tune';render()">⚙️</button> <button onclick="sellCar(${i})">💸</button></span></div></div>`}).join('')}</div>
+ <h3>Salon aut</h3><div class="grid">${CARS.slice(1).map(b=>`<div class="card">${carSVG({col:b.col,parts:{},neon:''})}<div class="row"><b>${b.n}</b><span class="m">${b.hp} KM</span></div><p class="m">${b.d}</p><button class="pri" style="width:100%" onclick="buyCar('${b.id}')">Kup · ${fmt(b.p)}</button></div>`).join('')}</div>`}
+function vShop(){return`${scene()}<h3>Ulepszenia warsztatu</h3><div class="grid">${UPS.filter(u=>u.k!=='bays').map(u=>{const n=S.up[u.k],max=n>=u.max;return`<div class="card"><div class="row"><b>${u.n}</b><span class="tag">${n}/${u.max}</span></div><p class="m">${u.d}</p><button class="${max?'':'cy'}" style="width:100%" onclick="buyUp('${u.k}')" ${max?'disabled':''}>${max?'Maks.':'Kup · '+fmt(u.base*(u.k==='bays'?n:n+1))}</button></div>`}).join('')}</div>
+ <h3>Statystyki</h3><div class="card"><div class="row"><span>Wykonane zlecenia</span><b>${S.done}</b></div><div class="row"><span>Łączny przychód</span><b>${fmt(S.earned)}</b></div><div class="row"><span>Auta w garażu</span><b>${S.cars.length}</b></div><div class="row"><span>Koszty dzienne</span><b>${fmt(150*S.up.bays+S.staff.reduce((a,w)=>a+w.wage,0))}</b></div></div>
+ <button onclick="if(confirm('Wrócić do menu?')){$('#game').style.display='none';$('#menu').style.display='flex';$('#cont').disabled=!load()}">☰ Menu główne</button>`}
+</script>
+<script>
+/* ===== TRYB CZASU RZECZYWISTEGO ===== */
+const DAY=86400000,now=()=>Date.now(),mmss=s=>{s=Math.max(0,Math.ceil(s));if(s>=3600)return Math.floor(s/3600)+'h '+String(Math.floor(s%3600/60)).padStart(2,'0')+'m';return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+const dur=j=>Math.round(j.d*55*(1-S.up.tools*.1))*1000,instT=o=>Math.round(o.p/30*(1-S.up.tools*.1))*1000,gap=()=>Math.max(40,110-S.rep*.5)*1000*rnd(.7,1.3)*adMul();
+UPS[0].d='+1 stanowisko (równoległe naprawy)';UPS[1].d='-10% czasu napraw i montażu, szersza strefa';UPS[4].d='Sam przyjmuje klientów i naprawia (jakość 65%), 200 zł/dzień';
+function fresh(){const n=now();return{cash:5000,xp:0,rep:10,day:1,earned:0,done:0,up:{bays:1,tools:0,dyno:0,paint:0,mech:0},cars:[{id:'mikro',col:'#8a94a6',parts:{},neon:'#00e5ff',spent:0}],jobs:[],bays:[null],t:n,nc:n+15000,nd:n+DAY}}
+function newCust(at){const L=lvl(),pool=JOBS.filter(j=>j[3]<=L),j=pool[Math.floor(Math.random()*pool.length)];return{id:Math.random().toString(36).slice(2),n:j[0],d:j[2],p:Math.round(j[1]*(1+L*.12)*rnd(.9,1.2)/10)*10,car:['Fiat Panda','Opel Astra','Toyota Yaris','Dacia Duster','Renault Clio','Ford Focus','Skoda Octavia'][Math.floor(Math.random()*7)],col:COLORS[Math.floor(Math.random()*COLORS.length)],exp:at+rnd(240,420)*1000}}
+function genJobs(){S.jobs=[newCust(now()),newCust(now())]}
+function migrate(){const n=now();if(!S.bays){S.bays=[];S.nc=n+15000;S.nd=n+DAY;S.t=n}while(S.bays.length<S.up.bays)S.bays.push(null);S.jobs.forEach(j=>{if(!j.exp)j.exp=n+300000;if(!j.col)j.col='#8a94a6'});
+ S.bays.forEach((b,i)=>{if(b&&b.q===null){S.jobs.unshift(b.j);S.bays[i]=null}});const lim=n-10800000;if(S.nc<lim)S.nc=lim;if(S.nd<lim)S.nd=lim}
+function tick(silent){const n=now(),ev=[];let ch=0;
+ while(S.nc<=n){if(S.jobs.length<3+S.up.bays){S.jobs.push(newCust(S.nc));ch=1}S.nc+=gap()}
+ const bf=S.jobs.length;S.jobs=S.jobs.filter(j=>j.exp>n);if(S.jobs.length<bf){S.rep=Math.max(0,S.rep-(bf-S.jobs.length));ev.push('😠 Klient zniecierpliwiony odszedł (-rep)');ch=1}
+ S.bays.forEach((b,i)=>{if(b&&b.end<=n){const pay=Math.round(b.j.p*(.6+.6*b.q));gain(pay,b.j.d*12,b.q>.7?2:b.q<.35?-2:0);S.done++;S.bays[i]=null;ev.push(`✅ ${b.j.n} (${b.j.car}): +${fmt(pay)}`)}});
+ S.bays.forEach((b,i)=>{const w=S.staff.find(w=>w.bay===i);if(!b&&w&&S.jobs.length){const j=S.jobs.shift();S.bays[i]={j,q:QS[w.stars],start:n,end:n+Math.round(dur(j)*SP[w.stars]),auto:1,w:w.name,stars:w.stars};ch=1}});
+ S.cars.forEach(c=>{if(c.busy&&c.busy.end<=n){const o=SLOTS.find(s=>s.k===c.busy.k).o[c.busy.oi];c.parts[c.busy.k]=c.busy.oi;gain(0,Math.round(o.p/100));ev.push('🔧 '+CARS.find(x=>x.id===c.id).n+': zamontowano '+o.n);c.busy=null}});
+ while(S.nd<=n){S.day++;const r=150*S.up.bays+S.staff.reduce((a,w)=>a+w.wage,0);S.cand=genCand();S.cash-=r;let m='📅 Dzień '+S.day+': koszty '+fmt(r),x=Math.random();if(x<.12){S.cash-=300;m+=' · 🚔 mandat 300 zł'}else if(x<.24){S.cash+=800;m+=' · 🎁 promocja +800 zł'}else if(x<.34){S.rep+=5;m+=' · 📸 influencer +5 rep.'}else if(x<.4){S.cash-=400;m+=' · 🔧 awaria -400 zł'}ev.push(m);S.nd+=DAY}
+ S.t=n;if(ev.length||ch){if(!silent)ev.slice(-3).forEach(toast);if(ev.length)beep(660,.1,'sine');render()}return ev}
+function upd(){document.querySelectorAll('[data-end]').forEach(e=>{e.textContent=mmss((e.dataset.end-now())/1000)});document.querySelectorAll('[data-s]').forEach(e=>{const p=Math.max(0,Math.min(1,(now()-e.dataset.s)/(e.dataset.e-e.dataset.s)));if(e.dataset.w)e.setAttribute('width',e.dataset.w*p);else e.style.width=p*100+'%'})}
+function start(){$('#menu').style.display='none';$('#game').style.display='block';migrate();const away=now()-S.t,ev=tick(true);
+ if(away>60000&&ev.length)modal(`<h3>Podczas Twojej nieobecności</h3><p class="m">Minęło ${mmss(away/1000)}</p><div style="max-height:260px;overflow:auto">${ev.slice(-14).map(e=>`<div>${e}</div>`).join('')}</div><button class="pri" style="margin-top:12px" onclick="closeModal()">Super!</button>`);
+ render();if(!window._iv){let k=0;window._iv=setInterval(()=>{if(S&&$('#game').style.display==='block'){tick();upd();if(++k%10==0)save()}},1000);addEventListener('pagehide',()=>{S&&save()})}}
+function help(){modal(`<h3>Jak grać</h3><ol class="m"><li>Klienci przyjeżdżają co jakiś czas i czekają w <b>kolejce</b> (po kilku minutach odchodzą!).</li><li><b>Przyjmij</b> klienta na wolne stanowisko i zrób kontrolę wstępną (minigra) – od niej zależy wypłata.</li><li>Naprawa trwa <b>realnie</b> (minuty), także gdy zamkniesz kartę. Możesz ją przyspieszyć za gotówkę ⚡.</li><li>Montaż części w <b>Tuningu</b> też zajmuje czas. W tym czasie planuj zakupy i rozbudowę.</li><li>Co 8 minut mija dzień i płacisz czynsz oraz pensje. Mechanik 🤖 pracuje sam.</li></ol><button class="pri" onclick="closeModal()">Jasne!</button>`)}
+function mini(j,cb){let pos=0,dir=1,raf,sc=[];const spd=1.1+j.d*.3,z=Math.min(.45,Math.max(.1,.26-j.d*.03+S.up.tools*.04));
+ const step=()=>{pos+=dir*spd*.012;if(pos>1){pos=1;dir=-1}if(pos<0){pos=0;dir=1}const m=$('#mk');if(m)m.style.left=`calc(${pos*100}% - 3px)`;raf=requestAnimationFrame(step)};
+ G={stop:()=>cancelAnimationFrame(raf),hit(){const d=Math.abs(pos-.5),q=d<=z/2?1:Math.max(0,1-(d-z/2)*3);sc.push(q);beep(300+q*500,.1);if(sc.length>=3){G.stop();G=null;cb(sc.reduce((a,b)=>a+b)/3)}else $('#rn').textContent=sc.length+1}};
+ modal(`<h3>${j.n}</h3><p class="m">Kontrola wstępna: zatrzymaj suwak w zielonej strefie. Próba <b id="rn">1</b>/3 (spacja lub przycisk)</p><div class="zone"><div id="zn" style="left:${(.5-z/2)*100}%;width:${z*100}%"></div><div id="mk"></div></div><button class="pri" style="width:100%;font-size:20px;padding:14px" onclick="G&&G.hit()">STOP!</button>`);step()}
+function accept(i){const bi=S.bays.findIndex(b=>!b);if(bi<0){toast('⛔ Brak wolnego stanowiska – poczekaj lub rozbuduj warsztat');return}const j=S.jobs.splice(i,1)[0];S.bays[bi]={j,q:null};render();
+ mini(j,q=>{const n=now(),b=S.bays[bi];b.q=q;b.start=n;b.end=n+dur(j);modal(`<h3>${q>.85?'⭐ Świetna diagnoza!':q>.5?'👍 Dobrze':'😬 Średnio...'}</h3><p>Jakość: <b>${Math.round(q*100)}%</b><br>Naprawa potrwa <b>${mmss(dur(j)/1000)}</b>, wypłata <b class="g">${fmt(Math.round(j.p*(.6+.6*q)))}</b>.</p><button class="pri" onclick="closeModal();render()">OK</button>`);render()})}
+function rush(i){const b=S.bays[i];if(!b||b.q===null)return;const c=Math.ceil((b.end-now())/500);if(S.cash<c){toast('❌ Za mało gotówki');return}S.cash-=c;b.end=now();beep(800,.15);tick()}
+function rushCar(i){const b=S.cars[i].busy;if(!b)return;const c=Math.ceil((b.end-now())/500);if(S.cash<c){toast('❌ Za mało gotówki');return}S.cash-=c;b.end=now();beep(800,.15);tick()}
+function install(k,oi){const c=S.cars[sel],o=SLOTS.find(s=>s.k===k).o[oi];if(c.busy){toast('⏳ Auto jest w trakcie montażu');return}if(c.parts[k]===oi){toast('Już zamontowane');return}if(S.cash<o.p){toast('❌ Za mało gotówki');return}S.cash-=o.p;c.spent+=o.p;c.busy={k,oi,start:now(),end:now()+instT(o),n:o.n};beep(700,.12,'sawtooth');toast('🔧 Montaż rozpoczęty: '+o.n+' ('+mmss(instT(o)/1000)+')');render()}
+function vJobs(){const xp=S.xp%120;return`<div class="card"><div class="row"><b>Postęp do poz. ${lvl()+1}</b><span class="m">${xp}/120 XP</span></div><div class="bar"><i style="width:${xp/1.2}%"></i></div></div>
+<h3>🏭 Stanowiska</h3><div class="grid">${S.bays.map((b,i)=>`<div class="card">${!b?`<b>${i+1}. Wolne</b><p class="m">Przyjmij klienta z kolejki.</p>`:b.q===null?`<b>${i+1}. ${b.j.n}</b><p class="m">Kontrola wstępna…</p>`:`<div class="row"><b>${i+1}. ${b.j.n}${b.auto?' 🤖':''}</b><b class="tm o" data-end="${b.end}"></b></div><p class="m">${b.j.car} · wypłata ${fmt(Math.round(b.j.p*(.6+.6*b.q)))}</p><div class="bar"><i data-s="${b.start}" data-e="${b.end}"></i></div><button class="cy" style="width:100%;margin-top:8px" onclick="rush(${i})">⚡ Przyspiesz · ${fmt(Math.ceil((b.end-now())/500))}</button>`}</div>`).join('')}</div>
+<div class="row"><h3>🚗 Kolejka klientów</h3><span class="m">następny za <b class="tm" data-end="${S.nc}"></b></span></div>
+<div class="grid">${S.jobs.map((j,i)=>`<div class="card"><div class="row"><b>${j.n}</b><span class="g">${fmt(j.p)}</span></div><p class="m">${j.car} · ${'★'.repeat(j.d)}${'☆'.repeat(4-j.d)} · naprawa ${mmss(dur(j)/1000)} · odjedzie za <b class="tm" data-end="${j.exp}"></b></p><button class="pri" style="width:100%" onclick="accept(${i})">Przyjmij</button></div>`).join('')||'<div class="card m">Brak klientów – poczekaj na następnego.</div>'}</div>`}
+const _vt=vTune;vTune=function(){const c=S.cars[sel];return(c.busy?`<div class="card" style="border-color:var(--warn)"><div class="row"><b>🔧 Montaż: ${c.busy.n}</b><b class="tm o" data-end="${c.busy.end}"></b></div><div class="bar"><i data-s="${c.busy.start}" data-e="${c.busy.end}"></i></div><button class="cy" style="margin-top:8px" onclick="rushCar(${sel})">⚡ Przyspiesz · ${fmt(Math.ceil((c.busy.end-now())/500))}</button></div>`:'')+_vt()};
+const _bu=buyUp;buyUp=function(k){const b=S.up[k];_bu(k);if(k==='bays'&&S.up.bays>b)S.bays.push(null);render()};
+const _sc=scene;scene=function(){let x='';S.bays.forEach((b,i)=>{if(!b||b.q===null)return;const X=20+i*155;x+=`<rect x="${X+4}" y="125" width="142" height="160" fill="#151a2c"/><rect x="${X+4}" y="338" width="142" height="20" fill="#0c0e18"/><rect x="${X+10}" y="208" width="9" height="77" fill="#5a6478"/><rect x="${X+131}" y="208" width="9" height="77" fill="#5a6478"/>`+carSVG({col:b.j.col||'#8a94a6',parts:{},neon:'',sh:b.j.sh}).replace('class="car"',`x="${X+5}" y="150" width="140" height="60"`)+`<rect x="${X+5}" y="206" width="140" height="7" rx="3" fill="#8b93aa"/><rect x="${X+10}" y="132" width="130" height="8" rx="4" fill="#0008"/><rect data-s="${b.start}" data-e="${b.end}" data-w="130" x="${X+10}" y="132" width="0" height="8" rx="4" fill="#2ee59d"/><text x="${X+75}" y="352" text-anchor="middle" font-size="13" fill="#ffcc33" font-family="Rajdhani,sans-serif">${b.j.n}${b.auto?' 🤖':''}</text>`});return _sc().replace('</svg>',x+'</svg>')};
+const _r=render;render=function(){_r();$('#stats').insertAdjacentHTML('beforeend',`<span class="chip">⏱ <b class="tm" data-end="${S.nd}"></b></span>`);upd()};
+</script>
+<script>
+/* ===== STANOWISKA-PROSTOKĄTY + PRACOWNICY ===== */
+const SP=[0,1.8,1.5,1.2,1,.8],QS=[0,.35,.5,.65,.8,.95],WG=[0,80,140,220,340,520],NM=['Marek','Kasia','Tomek','Ola','Piotr','Ania','Kuba','Zosia','Bartek','Ewa','Darek','Magda'];
+const starS=n=>'★'.repeat(n)+'☆'.repeat(5-n);
+UPS.splice(4,1);TABS.splice(3,0,['staff','👷','Pracownicy']);
+function genCand(){const rp=(S&&S.rep)||0,out=[];for(let i=0;i<3+(rp>40?1:0);i++){const r=Math.random()+Math.min(.3,rp/300),s=r<.3?1:r<.55?2:r<.78?3:r<.93?4:5;out.push({id:Math.random().toString(36).slice(2),name:NM[Math.floor(Math.random()*NM.length)],stars:s,wage:WG[s],fee:WG[s]*5})}return out}
+const _fr=fresh;fresh=function(){const s=_fr();s.staff=[];s.cand=genCand();return s};
+const _mg=migrate;migrate=function(){if(!S.staff){S.staff=[];for(let i=0;i<S.up.mech;i++)S.staff.push({id:'m'+i,name:NM[i],stars:3,wage:WG[3],bay:i<S.up.bays?i:null})}_mg();if(!S.cand)S.cand=genCand();S.up.mech=S.staff.length};
+function help(){modal(`<h3>Jak grać</h3><ol class="m"><li>Klienci wpadają do <b>kolejki</b> i odjeżdżają, jeśli zbyt długo czekają.</li><li><b>Kliknij stanowisko</b> (prostokąt): możesz naprawić auto sam (minigra) albo <b>zatrudnić pracownika</b>, który będzie tam pracował automatycznie.</li><li>Pracownicy mają <b>1–5 ★</b>: im więcej gwiazdek, tym szybciej i lepiej naprawiają, ale tym wyższa pensja dzienna.</li><li>Naprawy i montaż części trwają realnie, także gdy zamkniesz kartę. Możesz je przyspieszyć za gotówkę ⚡.</li><li>Co 8 minut mija dzień: czynsz i pensje.</li></ol><button class="pri" onclick="closeModal()">Jasne!</button>`)}
+function accept(i,bi){if(bi==null)bi=S.bays.findIndex((b,k)=>!b&&!S.staff.some(w=>w.bay===k));if(bi<0||S.bays[bi]){toast('⛔ Stanowisko zajęte');return}if(S.staff.some(w=>w.bay===bi)){toast('👷 To stanowisko obsługuje pracownik');return}const j=S.jobs.splice(i,1)[0];if(!j)return;S.bays[bi]={j,q:null};render();
+ mini(j,q=>{const n=now(),b=S.bays[bi];b.q=q;b.start=n;b.end=n+dur(j);modal(`<h3>${q>.85?'⭐ Świetna diagnoza!':q>.5?'👍 Dobrze':'😬 Średnio...'}</h3><p>Jakość: <b>${Math.round(q*100)}%</b><br>Naprawa potrwa <b>${mmss(dur(j)/1000)}</b>, wypłata <b class="g">${fmt(Math.round(j.p*(.6+.6*q)))}</b>.</p><button class="pri" onclick="closeModal();render()">OK</button>`);render()})}
+function hire(id,bi){const c=S.cand.find(c=>c.id===id);if(!c)return;if(bi==null)bi=S.bays.findIndex((b,k)=>!S.staff.some(w=>w.bay===k));if(bi<0||S.staff.some(w=>w.bay===bi)){toast('⛔ Brak stanowiska bez pracownika – kup nowe lub zwolnij kogoś');return}if(S.cash<c.fee){toast('❌ Za mało gotówki');return}S.cash-=c.fee;S.cand=S.cand.filter(x=>x!==c);S.staff.push({id:c.id,name:c.name,stars:c.stars,wage:c.wage,bay:bi});S.up.mech=S.staff.length;beep(850,.2,'sine');toast('👷 Zatrudniono: '+c.name+' ('+c.stars+'★) → stanowisko '+(bi+1));closeModal();tick();render()}
+function fire(id){S.staff=S.staff.filter(w=>w.id!==id);S.up.mech=S.staff.length;toast('Zwolniono pracownika');render()}
+function assign(id,bi){S.staff.forEach(o=>{if(o.bay===bi)o.bay=null});S.staff.find(w=>w.id===id).bay=bi;closeModal();tick();render()}
+function assignMenu(id){modal(`<h3>Przypisz do stanowiska</h3><div style="display:grid;gap:8px">${S.bays.map((b,i)=>`<button class="cy" onclick="assign('${id}',${i})">Stanowisko ${i+1}${S.staff.find(w=>w.bay===i)?' (zajmie miejsce: '+S.staff.find(w=>w.bay===i).name+')':''}</button>`).join('')}<button onclick="closeModal()">Anuluj</button></div>`)}
+const candRow=(c,bi)=>`<div class="row" style="margin:6px 0"><span><b>${c.name}</b> <span style="color:var(--warn)">${starS(c.stars)}</span><br><span class="m">szybkość ×${(1/SP[c.stars]).toFixed(1)} · jakość ${Math.round(QS[c.stars]*100)}% · ${fmt(c.wage)}/dzień</span></span><button class="cy" onclick="hire('${c.id}'${bi==null?'':','+bi})">Zatrudnij · ${fmt(c.fee)}</button></div>`;
+function openBay(bi){const b=S.bays[bi],w=S.staff.find(w=>w.bay===bi);let h=`<h3>Stanowisko ${bi+1}</h3>`;
+ if(b&&b.q!==null){h+=`<p>${b.j.n} · ${b.j.car}${b.w?'<br>👷 '+b.w+' '+starS(b.stars):''}</p><div class="row"><b class="tm o" data-end="${b.end}"></b><span class="g">${fmt(Math.round(b.j.p*(.6+.6*b.q)))}</span></div><div class="bar"><i data-s="${b.start}" data-e="${b.end}"></i></div><button class="cy" style="margin-top:10px" onclick="closeModal();rush(${bi})">⚡ Przyspiesz · ${fmt(Math.ceil((b.end-now())/500))}</button>`}
+ else if(b){h+='<p class="m">Trwa kontrola wstępna…</p>'}
+ else if(w){h+=`<div class="card"><b>👷 ${w.name}</b> <span style="color:var(--warn)">${starS(w.stars)}</span><p class="m">Pracuje tu automatycznie – podejmie kolejnego klienta z kolejki. Pensja ${fmt(w.wage)}/dzień.</p><button onclick="fire('${w.id}');openBay(${bi})">Zwolnij</button></div>`}
+ else{h+=`<h4 style="margin:8px 0">🔧 Napraw sam</h4>${S.jobs.map((j,i)=>`<button class="pri" style="width:100%;margin:4px 0" onclick="closeModal();accept(${i},${bi})">${j.n} · ${j.car} · ${fmt(j.p)} · ${mmss(dur(j)/1000)}</button>`).join('')||'<p class="m">Brak klientów w kolejce.</p>'}<h4 style="margin:12px 0 4px">👷 Zatrudnij pracownika</h4>${S.cand.map(c=>candRow(c,bi)).join('')||'<p class="m">Brak kandydatów – nowi jutro.</p>'}`}
+ h+='<button style="margin-top:12px" onclick="closeModal()">Zamknij</button>';modal(h);upd()}
+function stHTML(i){const k=['st1','st2','st3','st3'][i];
+ if(i>=S.bays.length){const nx=i===S.bays.length;return`<div class="st ${k} lock ${nx?'nx':''}" ${nx?`onclick="buyUp('bays')"`:''}><div class="o" style="font-size:34px">${nx?'＋':'🔒'}</div><div class="m">${nx?'Nowe stanowisko · '+fmt(UPS[0].base*S.up.bays):'Zablokowane'}</div></div>`}
+ const b=S.bays[i],w=S.staff.find(w=>w.bay===i);
+ return`<div class="st ${k}" onclick="openBay(${i})"><div class="row"><b class="o">#${i+1}</b>${w?`<span class="tag">👷 ${w.name} <span style="color:var(--warn)">${starS(w.stars)}</span></span>`:'<span class="tag">brak pracownika</span>'}</div>${b&&b.q!==null?`${carSVG({col:b.j.col||'#8a94a6',parts:{},neon:'',sh:b.j.sh})}<div><div class="row"><b>${b.j.n}</b><b class="tm o" data-end="${b.end}"></b></div><div class="bar"><i data-s="${b.start}" data-e="${b.end}"></i></div></div>`:b?'<div class="m">Kontrola wstępna…</div>':'<div class="m" style="text-align:center">Wolne<br>Kliknij, by naprawić auto lub zatrudnić pracownika</div>'}</div>`}
+function vJobs(){const xp=S.xp%120;return`<div class="card"><div class="row"><b>Postęp do poz. ${lvl()+1}</b><span class="m">${xp}/120 XP</span></div><div class="bar"><i style="width:${xp/1.2}%"></i></div></div>
+<div class="row"><h3>🏭 Stanowiska</h3><span class="m">kliknij prostokąt</span></div><div class="stl">${[0,1,2,3].map(stHTML).join('')}</div>
+<div class="row"><h3>🚗 Kolejka klientów</h3><span class="m">następny za <b class="tm" data-end="${S.nc}"></b></span></div>
+<div class="grid">${S.jobs.map(j=>`<div class="card"><div class="row"><b>${j.n}</b><span class="g">${fmt(j.p)}</span></div><p class="m">${j.car} · ${'★'.repeat(j.d)}${'☆'.repeat(4-j.d)} · naprawa ${mmss(dur(j)/1000)} · odjedzie za <b class="tm" data-end="${j.exp}"></b></p></div>`).join('')||'<div class="card m">Brak klientów – poczekaj na następnego.</div>'}</div>`}
+function vStaff(){return`<h3>👷 Zatrudnieni (${S.staff.length}/${S.bays.length})</h3><div class="grid">${S.staff.map(w=>`<div class="card"><div class="row"><b>${w.name}</b><span style="color:var(--warn)">${starS(w.stars)}</span></div><p class="m">Szybkość ×${(1/SP[w.stars]).toFixed(1)} · jakość ${Math.round(QS[w.stars]*100)}%<br>Pensja ${fmt(w.wage)}/dzień · ${w.bay==null?'nieprzypisany':'stanowisko '+(w.bay+1)}</p><div class="row"><button class="cy" onclick="assignMenu('${w.id}')">Przypisz</button><button onclick="fire('${w.id}')">Zwolnij</button></div></div>`).join('')||'<div class="card m">Nikogo jeszcze nie zatrudniasz.</div>'}</div>
+<div class="row"><h3>📋 Kandydaci</h3><span class="m">nowi o końcu dnia: <b class="tm" data-end="${S.nd}"></b></span></div><div class="card">${S.cand.map(c=>candRow(c)).join('')||'<span class="m">Brak kandydatów – nowi jutro.</span>'}<p class="m">1★ = wolno i słabo, ale tanio · 5★ = szybko i perfekcyjnie, ale drogo.</p></div>`}
+</script>
+<script>
+/* ===== SCENA 2D v2: spójna ze stanowiskami i pracownikami ===== */
+function buyBay(){buyUp('bays')}function buyD(){buyUp('dyno')}function buyP(){buyUp('paint')}
+function scene(){const B=S.bays.length,F=`font-family='Rajdhani,sans-serif'`,man=(x,c,y)=>`<circle cx='${x}' cy='${y-38}' r='7' fill='#f2c9a0'/><path d='M${x-8} ${y-40} a8 8 0 0 1 16 0z' fill='${c}'/><rect x='${x-8}' y='${y-30}' width='16' height='22' rx='4' fill='${c}'/><rect x='${x-6}' y='${y-9}' width='5' height='10' fill='#223'/><rect x='${x+1}' y='${y-9}' width='5' height='10' fill='#223'/>`;
+ let o=`<defs><linearGradient id='wl' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#1c2136'/><stop offset='1' stop-color='#101423'/></linearGradient></defs><rect width='900' height='360' fill='url(#wl)'/>`;
+ for(let x=0;x<900;x+=60)o+=`<line x1='${x}' y1='60' x2='${x}' y2='285' stroke='#ffffff0a'/>`;
+ for(let y=90;y<285;y+=40)o+=`<line x1='0' y1='${y}' x2='900' y2='${y}' stroke='#ffffff0a'/>`;
+ o+=`<rect y='285' width='900' height='75' fill='#0c0e18'/><rect y='285' width='900' height='4' fill='#ff2d55' opacity='.7'/><text x='450' y='40' text-anchor='middle' font-family='Orbitron,sans-serif' font-weight='800' font-size='24' fill='#00e5ff' style='animation:flick 4s infinite;filter:drop-shadow(0 0 8px #00e5ff)'>GARAGE TYCOON · TUNING</text><text x='885' y='28' text-anchor='end' font-size='14' fill='#ffcc33' ${F}>⭐ Poz. ${lvl()} · 📣 ${S.rep}</text>`;
+ for(let i=0;i<4;i++){const x=20+i*155,b=S.bays[i],w=S.staff.find(w=>w.bay===i),run=b&&b.q!==null;
+  if(i>=B){const nx=i===B;o+=`<g class='${nx?'clk':''}' ${nx?`onclick='buyBay()'`:''} opacity='${nx?1:.35}'><rect x='${x+5}' y='130' width='140' height='155' rx='10' fill='none' stroke='#8b93aa' stroke-dasharray='8 6'/><text x='${x+75}' y='205' text-anchor='middle' font-size='40' fill='#8b93aa'>${nx?'＋':'🔒'}</text><text x='${x+75}' y='235' text-anchor='middle' font-size='13' fill='#8b93aa' ${F}>${nx?'Stanowisko · '+fmt(UPS[0].base*B):'zablokowane'}</text></g>`;continue}
+  o+=`<g class='clk' onclick='openBay(${i})'><polygon points='${x+60},70 ${x+90},70 ${x+140},285 ${x+10},285' fill='#ffe97a' opacity='.05'/><rect x='${x+55}' y='62' width='40' height='6' rx='3' fill='#ffe97a'/><rect x='${x}' y='110' width='150' height='245' fill='transparent'/><rect x='${x+10}' y='208' width='9' height='77' fill='#5a6478'/><rect x='${x+131}' y='208' width='9' height='77' fill='#5a6478'/>`;
+  if(run)o+=carSVG({col:b.j.col||'#8a94a6',parts:{},neon:'',sh:b.j.sh}).replace(/class=.car./,`x='${x+5}' y='150' width='140' height='60'`)+`<rect x='${x+5}' y='206' width='140' height='7' rx='3' fill='#8b93aa'/><rect x='${x+10}' y='132' width='130' height='8' rx='4' fill='#0008'/><rect data-s='${b.start}' data-e='${b.end}' data-w='130' x='${x+10}' y='132' width='0' height='8' rx='4' fill='#2ee59d'/><text x='${x+75}' y='350' text-anchor='middle' font-size='13' fill='#ffcc33' ${F}>${b.j.n}</text>`;
+  else o+=`<rect x='${x+5}' y='262' width='140' height='7' rx='3' fill='#5a6478'/><text x='${x+75}' y='350' text-anchor='middle' font-size='13' fill='#566' ${F}>${b?'kontrola wstępna…':'wolne – kliknij'}</text>`;
+  if(w){const wk=run&&b.auto;o+=`<g style='${wk?'animation:bob .6s infinite':''}'>${man(x+75,'#ff2d55',336)}<rect x='${x+84}' y='306' width='3' height='15' fill='#aab' style='transform-origin:${x+85}px 312px;animation:${wk?'needle .8s ease-in-out infinite':'none'}'/></g><text x='${x+75}' y='288' text-anchor='middle' font-size='11' fill='#ffcc33' ${F}>${'★'.repeat(w.stars)}</text>`}
+  o+='</g>'}
+ if(S.up.dyno)o+=`<rect x='650' y='150' width='115' height='135' rx='8' fill='#0a1a22' stroke='#00e5ff'/><circle cx='707' cy='185' r='24' fill='#06121a' stroke='#00e5ff'/><line x1='707' y1='185' x2='707' y2='166' stroke='#ff2d55' stroke-width='3' style='transform-origin:707px 185px;animation:needle 2.5s ease-in-out infinite'/><ellipse cx='685' cy='262' rx='16' ry='9' fill='#5a6478'/><ellipse cx='730' cy='262' rx='16' ry='9' fill='#5a6478'/><text x='707' y='140' text-anchor='middle' font-size='13' fill='#00e5ff' font-family='Orbitron,sans-serif'>HAMOWNIA</text>`;
+ else o+=`<g class='clk' onclick='buyD()' opacity='.6'><rect x='650' y='150' width='115' height='135' rx='8' fill='none' stroke='#8b93aa' stroke-dasharray='8 6'/><text x='707' y='215' text-anchor='middle' font-size='30'>🔒</text><text x='707' y='245' text-anchor='middle' font-size='13' fill='#8b93aa' ${F}>Hamownia · ${fmt(UPS[2].base)}</text></g>`;
+ if(S.up.paint){const pc=(S.cars[0]||{}).col||'#e63946';o+=`<rect x='775' y='150' width='115' height='135' rx='8' fill='#1a1020' stroke='#ff2d55'/><rect x='800' y='215' width='65' height='45' rx='10' fill='${pc}'/><rect x='782' y='185' width='14' height='7' fill='#8b93aa'/>`+[0,1,2].map(k=>`<circle cx='${806+k*10}' cy='${190+k*8}' r='${3+k}' fill='${pc}' style='animation:spray 1.2s ${k*.2}s infinite'/>`).join('')+`<text x='832' y='140' text-anchor='middle' font-size='13' fill='#ff2d55' font-family='Orbitron,sans-serif'>LAKIERNIA</text>`}
+ else o+=`<g class='clk' onclick='buyP()' opacity='.6'><rect x='775' y='150' width='115' height='135' rx='8' fill='none' stroke='#8b93aa' stroke-dasharray='8 6'/><text x='832' y='215' text-anchor='middle' font-size='30'>🔒</text><text x='832' y='245' text-anchor='middle' font-size='13' fill='#8b93aa' ${F}>Lakiernia · ${fmt(UPS[3].base)}</text></g>`;
+ o+=`<g style='animation:bob 2s infinite'>${man(700,'#00b8d4',336)}<rect x='708' y='308' width='12' height='15' fill='#fff'/></g><text x='728' y='326' font-size='14' fill='#fff' font-weight='700' ${F}>📋 ${S.jobs.length} w kolejce</text>`;
+ return`<div class='card' style='padding:8px'><svg class='scene' viewBox='0 0 900 360'>${o}</svg><p class='m' style='margin:8px 4px 0'>Kliknij stanowisko, aby naprawić auto lub zatrudnić pracownika. Czerwoni pracownicy z gwiazdkami pracują sami.</p></div>`}
+</script>
+<script>
+/* ===== MODELE: osobne sylwetki + 3 zdjęcia na model (losowane) ===== */
+const SH={mikro:'h',volta:'g',sakura:'c',kaze:'c',alpen:'s',bavaro:'s',thunder:'m',raiden:'c'};
+const B0='M28 122 L38 94 Q60 86 110 82 L150 58 Q200 47 250 58 L292 82 Q350 88 374 102 L378 122 Z',W0='M124 82 L156 62 Q200 54 244 62 L274 82 Z';
+const SHP={g:['M28 122 L30 90 Q40 84 100 82 L128 54 L286 54 L316 82 Q360 86 374 100 L378 122 Z','M136 80 L148 60 L280 60 L304 80 Z'],c:['M28 122 L34 100 Q70 90 120 86 L168 64 Q215 54 262 64 L300 86 Q352 90 376 104 L378 122 Z','M150 84 L176 68 Q215 60 252 68 L282 84 Z'],s:['M26 122 L30 96 Q50 88 100 84 L140 58 L270 58 L316 84 Q358 90 376 102 L378 122 Z','M146 82 L162 62 L264 62 L296 82 Z'],m:['M24 122 L28 92 L120 86 L168 56 L276 56 L300 82 L372 88 L380 122 Z','M176 82 L186 62 L270 62 L288 82 Z'],h:[B0,W0]};
+const _cs=carSVG;carSVG=function(c){const s=_cs(c),k=SH[c.id];return k?s.replace(B0,SHP[k][0]).replace(W0,SHP[k][1]):s};
+let PV={},lv='';const pv=k=>PV[k]!==undefined?PV[k]:(PV[k]=Math.floor(Math.random()*3));
+function rr(k){delete PV[k];render()}
+const BGS=['radial-gradient(circle at 82% 20%,#fff3a0 0 7%,transparent 8%),linear-gradient(#6ec1ff 0,#d9f1ff 56%,#4a4f5a 56%,#3a3e48 100%)','radial-gradient(circle at 18% 22%,#fff8d8 0 5%,transparent 6%),linear-gradient(#070522 0,#2b0b52 56%,#14141f 56%,#0c0c14 100%)','radial-gradient(ellipse at 50% 35%,#4b5366 0,#161a26 75%)'];
+const SKY=[[0,34,50],[40,26,80],[72,40,36],[118,30,90],[152,36,60],[194,28,76],[226,40,44],[272,30,84],[306,36,56],[346,54,70]];
+function photo(c,key,real){const v=pv(key),sk=v<2?`<svg viewBox='0 0 400 100' preserveAspectRatio='none' style='position:absolute;left:0;right:0;bottom:44%;width:100%;height:34%'>${SKY.map(a=>`<rect x='${a[0]}' y='${100-a[2]}' width='${a[1]}' height='${a[2]}' fill='${v?'#1b1246':'#9db6cc'}'/>`).join('')}</svg>`:'';
+ return`<div data-k='${key}' onclick='rr(this.dataset.k)' title='Kliknij, by wylosować inne zdjęcie' style='position:relative;aspect-ratio:2/1;border-radius:10px;overflow:hidden;cursor:pointer;background:${BGS[v]}'>${sk}<div style='position:absolute;left:4%;right:4%;bottom:6%;${v==1?'transform:scaleX(-1)':''}'>${carSVG(c)}</div>${real?`<img src='img/${c.id}-${v+1}.jpg' alt='' loading='lazy' onerror='this.remove()' style='position:absolute;inset:0;width:100%;height:100%;object-fit:cover'>`:''}<span style='position:absolute;right:8px;top:6px;font-size:12px;background:#000a;padding:2px 8px;border-radius:9px'>📷 ${v+1}/3</span></div>`}
+function goTune(i){sel=i;view='tune';render()}
+function vGarage(){return`<h3>Twoja wystawa</h3><div class='grid'>${S.cars.map((c,i)=>{const st=stats(c);return`<div class='card'>${photo(c,'o'+i,false)}<div class='row' style='margin-top:8px'><b>${st.b.n}</b><span class='m'>${st.hp} KM</span></div><div class='row'><span class='m'>Wartość: ${fmt(value(c))}</span><span><button onclick='goTune(${i})'>⚙️</button> <button onclick='sellCar(${i})'>💸</button></span></div></div>`}).join('')}</div><h3>Salon aut</h3><p class='m'>3 zdjęcia na model, losowane za każdym razem. Kliknij zdjęcie, by wylosować inne.</p><div class='grid'>${CARS.slice(1).map(b=>`<div class='card'>${photo({id:b.id,col:b.col,parts:{},neon:''},'s'+b.id,true)}<div class='row' style='margin-top:8px'><b>${b.n}</b><span class='m'>${b.hp} KM</span></div><p class='m'>${b.d}</p><button class='pri' style='width:100%' data-id='${b.id}' onclick='buyCar(this.dataset.id)'>Kup · ${fmt(b.p)}</button></div>`).join('')}</div>`}
+const _r5=render;render=function(){if(view!==lv){PV={};lv=view}_r5()};
+</script>
+<script>
+/* ===== v6: konta, reklama, VIP, wyścigi, minigry, potwierdzenia ===== */
+const IS='width:100%;padding:12px;border-radius:10px;border:1px solid #ffffff22;background:#0b0d14;color:#e8ecf5;font:inherit';
+const UK='gt_users',ADT=900000,ADS=[['Ulotki',400,.85],['Plakaty',1000,.7],['Radio',2500,.55],['Billboard',6000,.4],['Telewizja',15000,.25]];
+const CC=[['Fiat 126p',.8],['Fiat Panda',.9],['Toyota Yaris',.95],['Renault Clio',1],['Opel Astra',1],['Ford Focus',1.05],['Skoda Octavia',1.1],['Volkswagen Passat',1.15],['Honda Civic',1.1],['Mazda 3',1.1],['Dacia Duster',1.15],['Kia Sportage',1.2],['BMW Seria 3',1.3],['Audi A4',1.3],['Volvo XC60',1.35],['Ford Ranger',1.5],['Toyota Hilux',1.55],['Nissan Navara',1.5],['Ford F-150',1.7],['Dodge RAM 1500',1.8]];
+const VIPC=['Mercedes S-Klasa','Porsche 911','Bentley Continental','Lamborghini Huracán','Rolls-Royce Ghost','Ferrari 488','Aston Martin DB11'];
+const OPP=[['Fiat 126p',22],['Fiat Panda',19.5],['Opel Astra',17.5],['Ford Focus ST',15.8],['Honda Civic Type R',14.2],['Subaru Impreza WRX',12.9],['BMW M4',11.8],['Porsche 911 Turbo',10.8],['Lamborghini Huracán',10.1],['Bugatti Chiron',9.4]];
+TABS.splice(3,0,['race','🏎️','Wyścigi']);
+/* --- potwierdzenia zakupów --- */
+function ask(t,fn){window._ok=fn;modal(`<h3>🛒 Potwierdzenie zakupu</h3><p>${t}</p><div class='row'><button onclick='closeModal()'>Anuluj</button><button class='pri' onclick='closeModal();_ok()'>Kupuję</button></div>`)}
+const _bu2=buyUp;buyUp=function(k){const u=UPS.find(x=>x.k===k),n=S.up[k];if(!u||n>=u.max){_bu2(k);return}ask(`Czy chcesz kupić <b>${k==='bays'?'stanowisko '+(n+1):u.n}</b> za <b>${fmt(u.base*(k==='bays'?n:n+1))}</b>?`,()=>_bu2(k))};
+const _in=install;install=function(k,oi){const c=S.cars[sel],o=SLOTS.find(s=>s.k===k).o[oi];if(c.busy||c.parts[k]===oi){_in(k,oi);return}ask(`Czy chcesz kupić i zamontować <b>${o.n}</b> za <b>${fmt(o.p)}</b>?`,()=>_in(k,oi))};
+const _bc=buyCar;buyCar=function(id){const b=CARS.find(x=>x.id===id);ask(`Czy chcesz kupić <b>${b.n}</b> za <b>${fmt(b.p)}</b>?`,()=>_bc(id))};
+const _pt=paint;paint=function(c){ask(`Czy chcesz przemalować auto za <b>${fmt(300)}</b>?`,()=>_pt(c))};
+const _hi=hire;hire=function(id,bi){const c=S.cand.find(x=>x.id===id);if(!c)return;ask(`Czy chcesz zatrudnić <b>${c.name}</b> (${starS(c.stars)}) za <b>${fmt(c.fee)}</b>? Pensja ${fmt(c.wage)}/dzień.`,()=>_hi(id,bi))};
+const _ru=rush;rush=function(i){const b=S.bays[i];if(!b||b.q===null)return;ask(`Czy chcesz przyspieszyć naprawę za <b>${fmt(Math.ceil((b.end-now())/500))}</b>?`,()=>_ru(i))};
+const _rc=rushCar;rushCar=function(i){const b=S.cars[i].busy;if(!b)return;ask(`Czy chcesz przyspieszyć montaż za <b>${fmt(Math.ceil((b.end-now())/500))}</b>?`,()=>_rc(i))};
+/* --- reklama --- */
+function adMul(){const a=S&&S.ad;return a&&a.until>now()?ADS[a.lvl-1][2]:1}
+function buyAd(l){const a=ADS[l-1];if(S.cash<a[1]){toast('❌ Za mało gotówki');return}S.cash-=a[1];S.ad={lvl:l,until:now()+ADT};S.nc=Math.min(S.nc,now()+gap());beep(850,.2,'sine');toast('📣 Kampania: '+a[0]);render()}
+function askAd(l){const a=ADS[l-1];ask(`Czy chcesz kupić kampanię <b>etap ${l}: ${a[0]}</b> za <b>${fmt(a[1])}</b>? Trwa 15 minut.`,()=>buyAd(l))}
+function adPanel(){const a=S.ad&&S.ad.until>now()?S.ad:null;return`<h3>📣 Reklama</h3><div class='card'>${a?`<div class='row'><b>Aktywna: ${ADS[a.lvl-1][0]}</b><b class='tm o' data-end='${a.until}'></b></div><p class='m'>Klienci przyjeżdżają ${Math.round((1-ADS[a.lvl-1][2])*100)}% częściej.</p>`:`<p class='m'>Brak aktywnej kampanii. Wybierz etap (trwa 15 min).</p>`}<div class='grid'>${ADS.map((x,i)=>`<button class='${a&&a.lvl===i+1?'':'cy'}' onclick='askAd(${i+1})'>Etap ${i+1}: ${x[0]}<br><span class='m'>${fmt(x[1])} · −${Math.round((1-x[2])*100)}% czasu</span></button>`).join('')}</div></div>`}
+const _vs=vShop;vShop=function(){return _vs().replace('<h3>Ulepszenia warsztatu</h3>',adPanel()+'<h3>Ulepszenia warsztatu</h3>')+`<div class='card row'><span class='m'>👤 ${acct()||'gość'}</span><button onclick='logout()'>Wyloguj</button></div>`};
+/* --- klienci: 20 aut + VIP --- */
+function newCust(at){const L=lvl(),pool=JOBS.filter(j=>j[3]<=L),j=pool[Math.floor(Math.random()*pool.length)],vip=L>=2&&Math.random()<.08+Math.min(.07,S.rep/1000),cc=vip?[VIPC[Math.floor(Math.random()*VIPC.length)],3]:CC[Math.floor(Math.random()*CC.length)];
+ return{id:Math.random().toString(36).slice(2),n:(vip?'👑 VIP · ':'')+j[0],d:j[2],p:Math.round(j[1]*(1+L*.12)*rnd(.9,1.2)*cc[1]/10)*10,car:cc[0],col:vip?['#111111','#c9a227','#ffffff','#7b0f1a'][Math.floor(Math.random()*4)]:COLORS[Math.floor(Math.random()*COLORS.length)],exp:at+(vip?rnd(420,600):rnd(240,420))*1000}}
+/* --- minigry skracające naprawę --- */
+const _ob=openBay;openBay=function(bi){_ob(bi);const b=S.bays[bi];if(b&&b.q!==null&&!b.boost&&b.end>now())$('#modal').insertAdjacentHTML('beforeend',`<button class='pri' style='margin-top:10px;width:100%' onclick='boost(${bi})'>🎮 Minigra: skróć czas (raz na zlecenie)</button>`)};
+function boost(bi){const b=S.bays[bi];if(!b||b.q===null||b.boost)return;const k=Math.floor(Math.random()*3);
+ const fin=sc=>{G=null;const bb=S.bays[bi];if(!bb||bb.q===null||bb.end<=now()){closeModal();return}bb.boost=1;bb.end-=(bb.end-now())*(.15+.45*sc);modal(`<h3>${sc>.8?'🔥 Rewelacja!':sc>.4?'👍 Nieźle':'😅 Następnym razem lepiej'}</h3><p>Naprawa skrócona o <b>${Math.round((.15+.45*sc)*100)}%</b>.</p><button class='pri' onclick='closeModal();tick();render()'>OK</button>`)};
+ if(k===0){let n=0,t=5;modal(`<h3>🔩 Dokręcaj śruby!</h3><p class='m'>Klikaj jak najszybciej przez 5 sekund (cel: 25).</p><div class='row'><b>Śruby: <span id='mn'>0</span></b><b>⏱ <span id='mt'>5</span></b></div><button class='pri' style='width:100%;font-size:26px;padding:22px' onclick='G.hit()'>🔧 DOKRĘĆ!</button>`);
+  const iv=setInterval(()=>{t--;$('#mt')&&($('#mt').textContent=t);if(t<=0){G.stop();fin(Math.min(1,n/25))}},1000);G={stop:()=>clearInterval(iv),hit(){n++;$('#mn').textContent=n;beep(300+n*15,.04)}}}
+ else if(k===1){const seq=[0,0,0,0].map(()=>Math.floor(Math.random()*4)),ic=['🔴','🟢','🔵','🟡'],TT=[];let p=0,ok=0,lock=true;
+  modal(`<h3>🧠 Zapamiętaj kolejność!</h3><p class='m' id='ms'>Patrz uważnie…</p><div class='grid' style='grid-template-columns:1fr 1fr'>${ic.map((x,i)=>`<button id='sb${i}' style='font-size:40px;padding:22px' onclick='G.pick(${i})'>${x}</button>`).join('')}</div>`);
+  seq.forEach((s,i)=>{TT.push(setTimeout(()=>{const e=$('#sb'+s);if(e){e.style.filter='brightness(2.2)';e.style.transform='scale(1.1)';beep(300+s*120,.2)}},700+i*800));TT.push(setTimeout(()=>{const e=$('#sb'+s);if(e){e.style.filter='';e.style.transform=''}},1200+i*800))});
+  TT.push(setTimeout(()=>{lock=false;$('#ms')&&($('#ms').textContent='Twoja kolej!')},700+4*800));
+  G={stop:()=>TT.forEach(clearTimeout),hit(){},pick(i){if(lock)return;beep(300+i*120,.1);if(i===seq[p]){ok++;p++;if(p>=4){G.stop();fin(1)}}else{G.stop();fin(ok/4)}}}}
+ else{let h=0,t=8;modal(`<h3>🎯 Łap śrubki!</h3><p class='m'>Kliknij 6 śrubek, zanim miną 8 sekund.</p><div class='row'><b>🔩 <span id='mh'>0</span>/6</b><b>⏱ <span id='mt'>8</span></b></div><div class='zone' style='height:160px'><button id='bolt' style='position:absolute;font-size:28px;padding:4px 10px' onclick='G.cl()'>🔩</button></div>`);
+  const mv=()=>{const e=$('#bolt');if(e){e.style.left=rnd(2,85)+'%';e.style.top=rnd(2,70)+'%'}};mv();
+  const iv=setInterval(()=>{t--;$('#mt')&&($('#mt').textContent=t);if(t<=0){G.stop();fin(h/6)}},1000),iv2=setInterval(mv,900);
+  G={stop:()=>{clearInterval(iv);clearInterval(iv2)},hit(){},cl(){h++;$('#mh').textContent=h;beep(500+h*60,.06);mv();if(h>=6){G.stop();fin(1)}}}}}
+/* --- wyścigi 1/4 mili --- */
+const myET=c=>{const s=stats(c);return Math.max(8.8,6.2*Math.cbrt((s.b.kg||1300)*2.205/s.hp)*(1+(55-s.hd)/600*.5))};
+function vRace(){const c=S.cars[sel],rl=S.rl||1;return`<div class='card'><div class='row'><b>🏎️ ${stats(c).b.n}</b><span class='m'>${stats(c).hp} KM · szac. czas ${myET(c).toFixed(1)} s</span></div><select onchange='sel=+this.value;render()' style='margin-top:8px;background:var(--card2);color:var(--tx);border:0;padding:8px;border-radius:8px;font:inherit'>${S.cars.map((x,i)=>`<option value='${i}' ${i==sel?'selected':''}>${CARS.find(y=>y.id===x.id).n}</option>`).join('')}</select><p class='m'>Tuninguj auto, aby jeździć szybciej. Wygrana odblokowuje kolejny poziom.</p></div><h3>Przeciwnicy (10 poziomów)</h3><div class='grid'>${OPP.map((o,i)=>`<div class='card'><div class='row'><b>Poziom ${i+1}</b><span style='color:var(--warn)'>${starS(Math.ceil((i+1)/2))}</span></div><p>${o[0]}<br><span class='m'>~${o[1].toFixed(1)} s · wpisowe ${fmt(100*(i+1))} · nagroda ${fmt(300*(i+1))}</span></p><button class='pri' style='width:100%' ${i+1>rl?'disabled':''} onclick='askRace(${i})'>${i+1>rl?'🔒 Zablokowane':'Ścigaj się'}</button></div>`).join('')}</div>`}
+function askRace(i){ask(`Wpisowe do wyścigu z <b>${OPP[i][0]}</b>: <b>${fmt(100*(i+1))}</b>. Wchodzisz?`,()=>race(i))}
+function race(i){const L=i+1,fee=100*L;if(S.cash<fee){toast('❌ Za mało gotówki na wpisowe');return}S.cash-=fee;render();
+ const o=OPP[i],me=myET(S.cars[sel]),TT=[],tr=['l1','l2','l3'],E=id=>$('#'+id);let state=0,gt=0,raf;
+ const fin=rt=>{if(state===2)return;state=2;const pen=rt<0?1.5:rt>=1.2?1.2:Math.max(0,rt-.2)*1.1,em=me+pen+rnd(-.12,.12),eo=o[1]+rnd(-.2,.2),mx=Math.max(em,eo),t0=performance.now(),W=(E('lane1')?E('lane1').parentNode.clientWidth:300)-44;
+  const f=()=>{const t=(performance.now()-t0)/300;if(E('lane1')){E('lane1').style.left=Math.min(1,t/em)*W+'px';E('lane2').style.left=Math.min(1,t/eo)*W+'px'}
+   if(t<mx)raf=requestAnimationFrame(f);else{const win=em<eo;if(win){gain(300*L,L*8,1);S.rl=Math.max(S.rl||1,Math.min(10,L+1))}else gain(0,L*2,0);beep(win?900:200,.3,'sine');
+    modal(`<h3>${win?'🏆 Wygrana!':'😞 Przegrana'}</h3><p>Ty: <b>${em.toFixed(2)} s</b> (${rt<0?'falstart!':rt>=1.2?'brak reakcji':'reakcja '+Math.round(rt*1000)+' ms'})<br>${o[0]}: <b>${eo.toFixed(2)} s</b></p><p>${win?`Nagroda: <b class='g'>${fmt(300*L)}</b>`:`Tracisz wpisowe ${fmt(fee)}`}</p><button class='pri' onclick='closeModal();render()'>OK</button>`)}};f()};
+ modal(`<h3>Wyścig 1/4 mili</h3><p class='m'>Kliknij GAZ!, gdy zapalą się zielone światła (spacja też działa). Nie startuj za wcześnie!</p><div class='row' style='justify-content:center;font-size:40px'><span id='l1'>🔴</span><span id='l2'>🔴</span><span id='l3'>🔴</span></div><div class='zone' style='height:92px;background:#222'><div id='lane1' style='position:absolute;left:0;top:8px;font-size:30px'>🏎️</div><div id='lane2' style='position:absolute;left:0;top:52px;font-size:30px'>🚗</div><div style='position:absolute;right:0;top:0;bottom:0;width:6px;background:repeating-linear-gradient(#fff 0 8px,#000 8px 16px)'></div></div><button class='pri' style='width:100%;font-size:22px;padding:14px' onclick='G&&G.hit()'>GAZ!</button>`);
+ tr.forEach((id,k)=>TT.push(setTimeout(()=>{E(id)&&(E(id).textContent='🟡')},500*(k+1))));
+ TT.push(setTimeout(()=>{if(state!==0)return;tr.forEach(id=>E(id)&&(E(id).textContent='🟢'));state=1;gt=performance.now();TT.push(setTimeout(()=>{state===1&&fin(1.2)},1500))},1500+rnd(500,1400)));
+ G={stop(){TT.forEach(clearTimeout);cancelAnimationFrame(raf)},hit(){if(state===0)fin(-1);else if(state===1)fin((performance.now()-gt)/1000)}}}
+/* --- konta (lokalne, e-mail + hasło) --- */
+const users=()=>{try{return JSON.parse(localStorage.getItem(UK))||{}}catch(e){return{}}},acct=()=>{try{return localStorage.getItem('gt_session')||''}catch(e){return''}};
+save=function(){try{if(S&&acct())localStorage.setItem('gt_save_'+acct(),JSON.stringify(S))}catch(e){}};
+load=function(){try{return JSON.parse(localStorage.getItem('gt_save_'+acct()))}catch(e){return null}};
+async function sha(t){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+function authUI(reg){modal(`<h3>${reg?'Rejestracja':'Logowanie'}</h3><p class='m'>${reg?'Utwórz konto – zapis gry zostanie przypisany do Twojego e-maila.':'Zaloguj się, aby wrócić do swojego warsztatu.'}</p><input id='em' type='email' placeholder='E-mail' autocomplete='email' style='${IS}'><input id='pw' type='password' placeholder='Hasło (min. 6 znaków)' autocomplete='${reg?'new-password':'current-password'}' style='${IS};margin-top:8px'><button class='pri' style='width:100%;margin-top:12px' onclick='doAuth(${reg?1:0})'>${reg?'Zarejestruj':'Zaloguj'}</button><button style='width:100%;margin-top:10px' onclick='authUI(${reg?0:1})'>${reg?'Mam już konto':'Załóż konto'}</button><p class='m' style='font-size:13px'>Konta i zapisy są przechowywane w tej przeglądarce (hasło jest haszowane).</p>`)}
+async function doAuth(reg){try{const e=$('#em').value.trim().toLowerCase(),p=$('#pw').value;if(!/^\S+@\S+\.\S+$/.test(e)){toast('Podaj poprawny e-mail');return}if(p.length<6){toast('Hasło min. 6 znaków');return}const U=users();
+ if(reg){if(U[e]){toast('Konto już istnieje – zaloguj się');return}const salt=Math.random().toString(36).slice(2);U[e]={salt,h:await sha(salt+p)};localStorage.setItem(UK,JSON.stringify(U));if(!localStorage.getItem('gt_save_'+e)&&localStorage.getItem('gt_save'))localStorage.setItem('gt_save_'+e,localStorage.getItem('gt_save'))}
+ else if(!U[e]||U[e].h!==await sha(U[e].salt+p)){toast('Błędny e-mail lub hasło');return}
+ localStorage.setItem('gt_session',e);closeModal();menuUser();toast(reg?'✅ Konto utworzone':'✅ Zalogowano')}catch(x){toast('Brak dostępu do pamięci przeglądarki')}}
+function logout(){save();try{localStorage.removeItem('gt_session')}catch(e){}S=null;$('#game').style.display='none';$('#menu').style.display='flex';menuUser();authUI(0)}
+function menuUser(){let e=$('#usr');if(!e){$('#menu').insertAdjacentHTML('afterbegin',`<div id='usr' class='m'></div>`);e=$('#usr')}e.innerHTML=acct()?`👤 ${acct()} <button style='padding:4px 10px;margin-left:6px;width:auto;font-size:14px' onclick='logout()'>Wyloguj</button>`:`<button class='cy' style='width:auto;padding:8px 16px;font-size:15px' onclick='authUI(0)'>Zaloguj / Zarejestruj</button>`;$('#cont').disabled=!load()}
+const _ng=newGame;newGame=function(){if(!acct()){authUI(0);return}_ng()};const _ct=cont;cont=function(){if(!acct()){authUI(0);return}_ct()};
+menuUser();if(!acct())setTimeout(()=>authUI(0),250);
+</script>
+<script>
+/* ===== v7: zapis w ciasteczkach zamiast kont ===== */
+const CK='gtsave',CSZ=3000;let ckOK,lastSave='';
+authUI=function(){};newGame=_ng;cont=_ct;
+const enc=s=>btoa(String.fromCharCode(...new TextEncoder().encode(s))),dec=b=>new TextDecoder().decode(Uint8Array.from(atob(b),c=>c.charCodeAt(0)));
+const ckSet=(n,v)=>{document.cookie=n+'='+v+';path=/;max-age=31536000;SameSite=Lax'+(location.protocol==='https:'?';Secure':'')},ckGet=n=>{const m=document.cookie.split('; ').find(x=>x.indexOf(n+'=')===0);return m?m.slice(n.length+1):null},ckDel=n=>{document.cookie=n+'=;path=/;max-age=0'};
+save=function(){try{if(!S)return;const o={...S};delete o.cand;const j=JSON.stringify(o);try{localStorage.setItem('gt_save_local',j)}catch(e){}
+ try{o.jobs=[];const b=enc(JSON.stringify(o)),n=Math.ceil(b.length/CSZ);for(let i=0;i<n;i++)ckSet(CK+i,b.slice(i*CSZ,(i+1)*CSZ));ckSet(CK+'n',n);for(let i=n;i<12;i++)if(ckGet(CK+i)!==null)ckDel(CK+i);ckOK=ckGet(CK+'n')!==null}catch(e){ckOK=false}
+ lastSave=new Date().toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'})}catch(e){}};
+load=function(){const fx=o=>{if(o)o.jobs=o.jobs||[];return o};
+ try{const n=+ckGet(CK+'n');if(n){let b='';for(let i=0;i<n;i++){const p=ckGet(CK+i);if(p===null)throw 0;b+=p}return fx(JSON.parse(dec(b)))}}catch(e){}
+ try{let j=localStorage.getItem('gt_save_local');if(!j)for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.indexOf('gt_save')===0){j=localStorage.getItem(k);break}}return j?fx(JSON.parse(j)):null}catch(e){return null}};
+function saveNow(){save();toast('💾 Zapisano');render()}
+function askDel(){modal(`<h3>Usunąć zapis?</h3><p>Cały postęp zostanie skasowany z ciasteczek tej przeglądarki.</p><div class='row'><button onclick='closeModal()'>Anuluj</button><button class='pri' onclick='delSave()'>Usuń</button></div>`)}
+function delSave(){try{for(let i=0;i<12;i++)ckDel(CK+i);ckDel(CK+'n');Object.keys(localStorage).filter(k=>k.indexOf('gt_save')===0).forEach(k=>localStorage.removeItem(k))}catch(e){}S=null;closeModal();$('#game').style.display='none';$('#menu').style.display='flex';menuUser();toast('🗑 Zapis usunięty')}
+const cookieCard=()=>`<div class='card'><div class='row'><b>🍪 Zapis gry</b><span class='m'>${ckOK===false?'ciasteczka zablokowane – używam pamięci przeglądarki':'automatycznie w ciasteczkach'}${lastSave?' · '+lastSave:''}</span></div><div class='row' style='margin-top:10px'><button class='cy' onclick='saveNow()'>💾 Zapisz teraz</button><button onclick='askDel()'>🗑 Usuń zapis</button></div></div>`;
+vShop=function(){return _vs().replace('<h3>Ulepszenia warsztatu</h3>',adPanel()+'<h3>Ulepszenia warsztatu</h3>')+cookieCard()};
+function menuUser(){let e=$('#usr');if(!e){$('#menu').insertAdjacentHTML('afterbegin',`<div id='usr' class='m'></div>`);e=$('#usr')}e.innerHTML='🍪 Postęp zapisuje się automatycznie w ciasteczkach';$('#cont').disabled=!load()}
+menuUser();
+</script>
+<script>
+/* ===== v8: gracz naprawia jedno auto naraz ===== */
+const myJob=()=>S.bays.findIndex(b=>b&&!b.auto);
+const _ac=accept;accept=function(i,bi){const k=myJob();if(k>=0){toast('🔧 Naprawiasz już auto na stanowisku '+(k+1)+' – jedno naraz!');closeModal();return}_ac(i,bi)};
+const _ob2=openBay;openBay=function(bi){_ob2(bi);const k=myJob();if(k>=0&&!S.bays[bi]&&!S.staff.some(w=>w.bay===bi)){const h=$('#modal h4');if(h)h.insertAdjacentHTML('afterend',`<p class='m' style='color:var(--warn)'>⛔ Naprawiasz już auto na stanowisku ${k+1}. Możesz naprawiać tylko jedno auto naraz – skończ je, przyspiesz lub zatrudnij pracownika.</p>`);$('#modal').querySelectorAll('button.pri').forEach(x=>{if((x.getAttribute('onclick')||'').indexOf('accept(')>=0)x.disabled=true})}};
+</script>
+<script>
+/* ===== v9: levelowanie, 24h, nagrody, tory, 58 aut, magazyn części, rozbudowane naprawy ===== */
+const TRK=[['Tor Poznań','Długa prosta – liczy się moc',.5],['Tor Słomczyn','Techniczny – liczy się prowadzenie',2.2],['Tor Jastrząb','Zmienny – balans mocy i prowadzenia',1.2]];let trk=0,sf=0;
+const REINST=250,DRW=[500,800,1200,1800,2500,3500,6000],SFN=['Wszystkie','do 40 tys.','40–100 tys.','powyżej 100 tys.'];
+const dIdx=()=>{const d=new Date();return Math.floor((d.getTime()-d.getTimezoneOffset()*60000)/864e5)},hasInv=(k,oi)=>(S.inv||[]).findIndex(x=>x.k===k&&x.oi===oi),repLv=()=>S?Math.min(5,Math.floor((S.rep||0)/20)):0;
+/* --- rozbudowane naprawy --- */
+[['Wymiana rozrządu',1500,3,2],['Wymiana sprzęgła',1700,3,3],['Wymiana opon i wyważenie',200,1,0],['Geometria kół',350,1,1],['Serwis klimatyzacji',450,2,1],['Wymiana akumulatora',300,1,0],['Naprawa układu wydechowego',700,2,1],['Pompa wody i płyn chłodniczy',800,2,2],['Wymiana wtryskiwaczy',1900,3,3],['Regeneracja turbosprzężarki',2600,4,4],['Remont skrzyni biegów',3200,4,5],['Naprawa elektryki',900,3,2],['Uszczelka pod głowicą',2400,4,4],['Tarcze i klocki',650,2,0]].forEach(j=>JOBS.push(j));
+/* --- 58 aut z realnymi parametrami --- */
+const OLDC={mikro:[60,102,960,14.5,38,4000],volta:[245,370,1400,6.2,68,34000],sakura:[250,275,1240,6.1,80,42000],kaze:[255,294,1280,5.3,80,52000],alpen:[310,380,1500,4.9,76,70000],bavaro:[343,365,1495,5.2,82,68000],thunder:[485,637,2000,4.3,58,110000],raiden:[330,392,1560,5,84,90000]};
+CARS.forEach(c=>{const o=OLDC[c.id];if(o){c.hp=o[0];c.nm=o[1];c.kg=o[2];c.t=o[3];c.hd=o[4];c.p=o[5]}});
+const CP=['#e63946','#3a86ff','#f4a261','#2ee59d','#7b2cbf','#ffd60a','#c0c8d8','#111111','#ff2d9b','#1d3557'];
+'fiesta,Ford Fiesta ST,26000,200,290,1260,6.5,66,h;focus,Ford Focus ST,34000,250,360,1440,6.3,68,g;focusrs,Ford Focus RS,62000,350,440,1550,4.7,78,g;civic,Honda Civic Type R,58000,320,400,1380,5.7,80,g;golfr,Volkswagen Golf R,56000,320,420,1480,4.7,78,g;a45,Mercedes A45 AMG,90000,421,500,1550,3.9,80,g;clio,Renault Clio RS,24000,200,240,1280,6.6,70,h;megane,Renault Megane RS,50000,300,400,1450,5.7,76,g;i30n,Hyundai i30 N,40000,280,392,1450,6.1,72,g;yaris,Toyota GR Yaris,52000,261,360,1280,5.5,78,h;corsa,Opel Corsa OPC,22000,192,230,1200,6.8,64,h;mini,Mini Cooper JCW,36000,231,320,1250,6.1,74,h;swift,Suzuki Swift Sport,17000,140,230,1000,8.1,66,h;abarth,Abarth 595 Competizione,22000,180,230,1100,6.7,62,h;leon,Seat Leon Cupra,46000,300,400,1450,5.7,74,g;octrs,Skoda Octavia RS,36000,245,370,1450,6.6,66,s;mx5,Mazda MX-5 ND,36000,184,205,1050,6.5,80,c;gr86,Toyota GR86,42000,234,250,1280,6.1,80,c;supra,Toyota Supra A90,76000,340,500,1520,4.3,82,c;supra4,Toyota Supra MK4,70000,330,427,1500,4.6,78,c;evo,Mitsubishi Lancer Evo IX,54000,300,392,1400,4.8,76,s;sti,Subaru Impreza WRX STI,48000,300,407,1500,5.2,76,s;s2000,Honda S2000,40000,240,208,1250,5.6,82,c;nsx,Honda NSX NA1,80000,280,295,1350,5.8,84,c;z350,Nissan 350Z,38000,300,358,1450,5.7,72,c;z370,Nissan 370Z,46000,328,363,1470,5.2,74,c;gtr35,Nissan GT-R R35,160000,570,637,1740,2.9,86,c;rx8,Mazda RX-8,28000,231,211,1370,6.4,74,c;integra,Honda Integra Type R,36000,200,190,1100,6.7,82,c;m2,BMW M2 Competition,98000,410,550,1600,4.2,84,c;m3e92,BMW M3 E92,70000,420,400,1655,4.6,80,c;m4,BMW M4 Competition,130000,510,650,1730,3.8,84,c;m5,BMW M5 F90,180000,625,750,1940,3.4,86,s;rs3,Audi RS3,90000,400,480,1560,3.8,82,g;rs4,Audi RS4 Avant,110000,450,600,1790,4.1,80,s;rs6,Audi RS6 Avant,170000,600,800,2025,3.6,82,s;rs7,Audi RS7,175000,600,800,2065,3.6,82,s;ttrs,Audi TT RS,85000,400,480,1450,3.7,80,c;r8,Audi R8 V10,220000,610,560,1650,3.2,88,c;c63,Mercedes C63 AMG,135000,510,700,1840,4.0,82,s;e63,Mercedes E63 AMG,190000,612,850,2000,3.4,82,s;amggt,Mercedes AMG GT,230000,585,700,1645,3.7,88,c;c911,Porsche 911 Carrera S,240000,450,530,1500,3.7,90,c;cayman,Porsche Cayman GTS,160000,400,420,1450,4.5,90,c;mustang,Ford Mustang GT,96000,450,529,1700,4.3,70,m;camaro,Chevrolet Camaro SS,98000,455,617,1700,4.2,74,m;corvette,Chevrolet Corvette C8,210000,495,637,1530,3.0,88,c;hellcat,Dodge Challenger Hellcat,185000,717,881,2000,3.6,62,m;viper,Dodge Viper ACR,200000,645,813,1560,3.5,82,c;raptor,Ford F-150 Raptor,120000,450,691,2500,5.1,40,m'.split(';').forEach((r,i)=>{const a=r.split(',');CARS.push({id:a[0],n:a[1],p:+a[2],hp:+a[3],nm:+a[4],kg:+a[5],t:+a[6],hd:+a[7],col:CP[i%10],d:a[3]+' KM · '+a[4]+' Nm · '+a[5]+' kg · 0–100 w '+a[6]+' s'});SH[a[0]]=a[8]});
+const _st=stats;stats=function(c){const s=_st(c),b=s.b,k=Math.min(1.7,Math.max(.6,Math.sqrt(b.hp/200)));s.hp=Math.round(b.hp+(s.hp-b.hp)*k);s.nm=Math.round(b.nm*s.hp/b.hp);s.t=Math.max(1.9,b.t*Math.pow(b.hp/s.hp,.7)).toFixed(1);return s};
+const _vg=vGarage;vGarage=function(){const all=CARS.slice(),own=new Set(S.cars.map(c=>c.id));CARS.length=1;all.slice(1).forEach(b=>{const p=b.p;if(own.has(b.id)||sf===0||(sf===1&&p<40000)||(sf===2&&p>=40000&&p<=100000)||(sf===3&&p>100000))CARS.push(b)});let h;try{h=_vg()}finally{CARS.length=0;CARS.push(...all)}return h.replace('<h3>Salon aut</h3>',`<div class='row' style='gap:6px;flex-wrap:wrap;margin-top:12px'>${SFN.map((x,i)=>`<button class='${i===sf?'pri':''}' style='padding:6px 12px' onclick='setSF(${i})'>${x}</button>`).join('')}</div><h3>Salon aut (${all.length-1} modeli)</h3>`)};
+function setSF(n){sf=n;render()}
+/* --- magazyn części: ponowny montaż za 250 zł --- */
+const _mg9=migrate;migrate=function(){_mg9();S.inv=S.inv||[];S.dr=S.dr||{last:-1,streak:0};S.cc=S.cc||0};
+install=function(k,oi){const c=S.cars[sel],o=SLOTS.find(s=>s.k===k).o[oi];if(c.busy){toast('⏳ Auto jest w trakcie montażu');return}if(c.parts[k]===oi){toast('Już zamontowane');return}
+ if(hasInv(k,oi)>=0){ask(`Czy chcesz ponownie zamontować <b>${o.n}</b> ze swojego magazynu za <b>${fmt(REINST)}</b>?`,()=>{if(S.cash<REINST){toast('❌ Za mało gotówki');return}const j=hasInv(k,oi);if(j<0)return;S.cash-=REINST;S.inv.splice(j,1);const old=c.parts[k];if(old!==undefined)S.inv.push({k,oi:old});c.busy={k,oi,start:now(),end:now()+instT(o),n:o.n};beep(700,.12,'sawtooth');toast('♻ Montaż: '+o.n);render()});return}
+ ask(`Czy chcesz kupić i zamontować <b>${o.n}</b> za <b>${fmt(o.p)}</b>?`,()=>{const old=c.parts[k];_in(k,oi);if(c.busy&&old!==undefined)S.inv.push({k,oi:old})})};
+const _ds=doSell;doSell=function(i,v){const c=S.cars[i];if(Object.keys(c.parts).length)toast('📦 Części trafiły do magazynu');Object.keys(c.parts).forEach(k=>S.inv.push({k,oi:c.parts[k]}));_ds(i,v)};
+value=function(c){return Math.round(CARS.find(x=>x.id===c.id).p*.75)};
+const _vt9=vTune;vTune=function(){let h=_vt9();const c=S.cars[sel],s=stats(c);(S.inv||[]).forEach(x=>{const re=new RegExp('install[(].'+x.k+'.,'+x.oi+'[)].>Kup[^<]*');h=h.replace(re,m=>m.replace(/>Kup[^<]*/,'>♻ Zamontuj ponownie · '+fmt(REINST)))});
+ const inv=(S.inv||[]).length?`<div class='card'><b>📦 Magazyn części</b><p class='m'>Ponowny montaż: ${fmt(REINST)} za sztukę.</p>${S.inv.map(x=>`<span class='tag'>${SLOTS.find(q=>q.k===x.k).o[x.oi].n}</span>`).join(' ')}</div>`:'';
+ const dy=`<div class='card'><b>📈 Dane z hamowni</b><div class='grid' style='grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-top:8px'>${[['Moc',s.hp+' KM'],['Moment',s.nm+' Nm'],['Masa',s.b.kg+' kg'],['KM na tonę',Math.round(s.hp/s.b.kg*1000)],['0–100',s.t+' s'],['1/4 mili',myET(c).toFixed(1)+' s']].map(x=>`<div><div class='m'>${x[0]}</div><b>${x[1]}</b></div>`).join('')}</div><p class='m'>${S.up.dyno?'Przyrost z tuningu: +'+(s.hp-s.b.hp)+' KM, +'+(s.nm-s.b.nm)+' Nm względem seryjnego.':'🔒 Kup hamownię w Warsztacie, aby zobaczyć wykres mocy.'}</p></div>`;return inv+dy+h};
+const _dy=dyno;dyno=function(){_dy();const s=stats(S.cars[sel]),p=$('#modal p');if(p)p.insertAdjacentHTML('beforeend','<br>Moment: <b>'+s.nm+' Nm</b> · 0–100: <b>'+s.t+' s</b>')};
+/* --- levelowanie: każdy poziom wymaga więcej XP --- */
+const _vj9=vJobs;vJobs=function(){const L=lvl(),a=60*L*(L-1),n=120*L,x=S.xp-a;return _vj9().replace(/<div class=.card.><div class=.row.><b>Post.p do poz[\s\S]*?<\/i><\/div><\/div>/,`<div class='card'><div class='row'><b>Poziom ${L} → ${L+1}</b><span class='m'>${x}/${n} XP</span></div><div class='bar'><i style='width:${Math.min(100,x/n*100)}%'></i></div><p class='m' style='margin:6px 0 0'>Każdy kolejny poziom wymaga więcej XP.</p></div>`)};
+/* --- reputacja podnosi poziom reklamy --- */
+adMul=function(){const a=S&&S.ad;return(a&&a.until>now()?ADS[a.lvl-1][2]:1)*(1-.05*repLv())};
+const _ap=adPanel;adPanel=function(){return _ap().replace('<h3>📣 Reklama</h3>',`<h3>📣 Reklama</h3><p class='m'>⭐ Poziom renomy: <b>${repLv()}/5</b> (reputacja ${S.rep}) – stała premia: klienci o ${repLv()*5}% częściej. Co 20 pkt reputacji = +1 poziom.</p>`)};
+/* --- dzień 24h: kandydaci odnawiają się co 30 min --- */
+const _tk=tick;tick=function(s){const r=_tk(s);if(S&&(!S.cc||S.cc<now())){S.cand=genCand();S.cc=now()+1800000}return r};
+const _vsf=vStaff;vStaff=function(){const Q=String.fromCharCode(34);return _vsf().replace('nowi o końcu dnia:','nowe oferty za:').replace('data-end='+Q+S.nd+Q,'data-end='+Q+(S.cc||S.nd)+Q)};
+/* --- tory wyścigowe --- */
+const _vr=vRace;vRace=function(){return`<h3>Wybierz tor</h3><div class='grid'>${TRK.map((t,i)=>`<div class='card' style='${i===trk?'border-color:var(--cy)':''}'><b>🏁 ${t[0]}</b><p class='m'>${t[1]}</p><button class='${i===trk?'pri':''}' style='width:100%' onclick='trk=${i};render()'>${i===trk?'✔ Wybrany':'Wybierz tor'}</button></div>`).join('')}</div>`+_vr()};
+const _rc9=race;race=function(i){_rc9(i);const h=$('#modal h3');if(h&&h.textContent.indexOf('Wyścig')===0)h.textContent='🏁 '+TRK[trk][0]+' · 1/4 mili'};
+/* --- nagroda za codzienne logowanie --- */
+function dailyCheck(){if(!S)return;if($('#modalbg').style.display==='flex'){setTimeout(dailyCheck,3000);return}const t=dIdx(),d=S.dr||{last:-1,streak:0};if(d.last===t)return;const st=d.last===t-1?d.streak:0,day=st%7;
+ modal(`<h3>🎁 Nagroda dzienna</h3><p class='m'>Logowanie dni z rzędu: <b>${st+1}</b></p><div class='grid' style='grid-template-columns:repeat(4,1fr);gap:6px'>${DRW.map((r,i)=>`<div class='card' style='padding:8px;text-align:center;${i===day?'border-color:var(--cy)':''}${i<day?';opacity:.5':''}'><div class='m'>Dzień ${i+1}</div><b>${i===6?'🏆 ':''}${fmt(r)}</b></div>`).join('')}</div><button class='pri' style='width:100%;margin-top:12px' onclick='claimDaily()'>Odbierz ${fmt(DRW[day])}</button>`)}
+function claimDaily(){const t=dIdx(),d=S.dr||{last:-1,streak:0},st=d.last===t-1?d.streak:0,day=st%7;S.cash+=DRW[day];if(day===6){S.rep+=10;toast('🏆 Bonus tygodniowy: +10 reputacji')}S.dr={last:t,streak:st+1};beep(900,.25,'sine');toast('🎁 +'+fmt(DRW[day]));closeModal();render()}
+const _s9=start;start=function(){_s9();setTimeout(dailyCheck,1500)};
+</script>
+<script>
+/* ===== data aktualizacji ===== */
+const UPD='8 listopada 2026';
+(()=>{const p=document.querySelector('#menu p');if(p)p.insertAdjacentHTML('afterend',`<p style='font-size:13px;margin:-8px 0 14px;color:var(--mut)'>🔄 Ostatnia aktualizacja: ${UPD}</p>`)})();
+const _vs10=vShop;vShop=function(){return _vs10()+`<p class='m' style='text-align:center;font-size:13px'>🔄 Ostatnia aktualizacja gry: ${UPD}</p>`};
+</script>
+<script>
+/* ===== v11: r\u00f3\u017cne formy nadwozia ===== */
+const P0='M200 56 L200 82';
+Object.assign(SHP,{
+ w:['M26 122 L28 92 L38 62 L110 58 L250 58 L298 84 Q350 90 376 102 L378 122 Z','M44 84 L50 66 L110 62 L246 62 L276 84 Z','M170 62 L170 84'],
+ p:['M24 122 L24 86 L168 86 L190 58 L282 58 L304 86 L362 90 Q376 98 378 108 L378 122 Z','M196 84 L210 64 L276 64 L294 84 Z M28 86 L164 86 L164 92 L28 92 Z','M240 64 L240 84'],
+ v:['M26 122 L28 90 L44 60 L118 54 L262 54 L306 82 Q352 88 376 100 L378 122 Z','M52 84 L60 64 L118 58 L258 58 L288 82 Z','M180 58 L180 82'],
+ r:['M28 122 L32 102 Q60 94 130 92 L170 88 L186 78 L206 78 L226 90 Q320 92 376 106 L378 122 Z','M182 90 L190 78 L204 78 L216 90 Z','M0 0 L0 0'],
+ u:['M24 122 L38 106 Q90 100 168 80 Q214 66 260 76 L322 96 Q360 100 378 112 L378 122 Z','M176 92 L204 78 Q228 74 252 80 L288 96 Z','M232 76 L232 94'],
+ f:['M26 122 L30 100 Q70 90 118 72 L168 56 Q230 50 272 64 L310 86 Q352 90 376 102 L378 122 Z','M128 78 L170 60 Q226 54 266 66 L292 84 Z','M214 56 L214 82'],
+ b:['M24 122 L24 64 L36 50 L250 50 L304 80 Q352 86 376 100 L378 122 Z','M52 76 L58 58 L246 58 L286 78 Z','M150 58 L150 78']});
+carSVG=function(c){const s=_cs(c),q=SHP[c.sh||SH[c.id]];return q?s.replace(B0,q[0]).replace(W0,q[1]).replace(P0,q[2]||P0):s};
+'ranger,Ford Ranger Raptor,90000,292,491,2400,7.9,48,p;hilux,Toyota Hilux GR Sport,80000,204,500,2200,10.5,42,p;silverado,Chevrolet Silverado ZR2,140000,420,623,2600,6.2,44,p;macan,Porsche Macan Turbo,150000,440,550,1950,4.3,70,v;rsq8,Audi RSQ8,230000,600,800,2315,3.8,66,v;urus,Lamborghini Urus,420000,650,850,2200,3.6,70,v;g63,Mercedes-AMG G63,380000,585,850,2560,4.5,52,v;trackhawk,Jeep Grand Cherokee Trackhawk,190000,707,868,2433,3.7,58,v;e63t,Mercedes E63 S Estate,195000,612,850,2100,3.5,80,w;golfvar,Volkswagen Golf R Variant,62000,320,420,1530,4.8,78,w;v60,Volvo V60 Polestar,80000,405,495,1850,4.9,72,w;z4,BMW Z4 M40i,90000,340,500,1500,4.5,82,r;boxster,Porsche 718 Boxster GTS,170000,400,420,1450,4.5,90,r;mclaren,McLaren 720S,480000,720,770,1419,2.9,92,u;ferrari,Ferrari 488 GTB,450000,670,760,1475,3.0,92,u;lotus,Lotus Emira,190000,400,430,1405,4.2,90,u;transporter,Volkswagen Transporter T6,85000,204,450,2100,9.5,38,b;vclass,Mercedes V-Class V300d,110000,239,500,2200,8.1,40,b'.split(';').forEach((r,i)=>{const a=r.split(',');CARS.push({id:a[0],n:a[1],p:+a[2],hp:+a[3],nm:+a[4],kg:+a[5],t:+a[6],hd:+a[7],col:CP[(CARS.length+i)%10],d:a[3]+' KM \u00b7 '+a[4]+' Nm \u00b7 '+a[5]+' kg \u00b7 0\u2013100 w '+a[6]+' s'});SH[a[0]]=a[8]});
+Object.assign(SH,{rs4:'w',rs6:'w',octrs:'w',rs7:'f',raptor:'p',mx5:'r',corvette:'u',r8:'u',nsx:'u'});
+const BODY={h:'Hatchback',g:'Hatchback',c:'Coupe',s:'Sedan',m:'Muscle car',w:'Kombi',p:'Pickup',v:'SUV',r:'Kabriolet',u:'Supercar',f:'Fastback',b:'Van'};
+CARS.forEach(c=>{c.d=BODY[SH[c.id]||'h']+' \u00b7 '+c.d});
+const BF=['Wszystkie','Hatchback','Coupe','Sedan','Kombi','SUV','Pickup','Kabriolet','Muscle car','Supercar','Fastback','Van'];let bf=0;
+function setBF(n){bf=n;render()}
+const _vg11=vGarage;vGarage=function(){const all=CARS.slice(),own=new Set(S.cars.map(c=>c.id));CARS.length=1;all.slice(1).forEach(b=>{if(bf===0||own.has(b.id)||BODY[SH[b.id]||'h']===BF[bf])CARS.push(b)});let h;try{h=_vg11()}finally{CARS.length=0;CARS.push(...all)}
+ const bar=`<div class='row' style='gap:6px;flex-wrap:wrap;margin-top:12px'>${BF.map((x,i)=>`<button class='${i===bf?'cy':''}' style='padding:6px 10px;font-size:14px' onclick='setBF(${i})'>${x}</button>`).join('')}</div>`,pb=`<div class='row' style='gap:6px;flex-wrap:wrap;margin-top:12px'>`;return h.replace(pb,bar+pb)};
+/* --- klienci: r\u00f3\u017cne nadwozia --- */
+CC.push(['Ford Transit',1.4],['Mercedes Sprinter',1.6],['Mazda MX-5',1.1],['Volkswagen Caddy',1.1]);
+const CSH={'Fiat 126p':'h','Fiat Panda':'h','Toyota Yaris':'h','Renault Clio':'h','Opel Astra':'g','Ford Focus':'g','Skoda Octavia':'w','Volkswagen Passat':'w','Honda Civic':'g','Mazda 3':'g','Dacia Duster':'v','Kia Sportage':'v','BMW Seria 3':'s','Audi A4':'s','Volvo XC60':'v','Ford Ranger':'p','Toyota Hilux':'p','Nissan Navara':'p','Ford F-150':'p','Dodge RAM 1500':'p','Ford Transit':'b','Mercedes Sprinter':'b','Mazda MX-5':'r','Volkswagen Caddy':'b','Mercedes S-Klasa':'s','Porsche 911':'c','Bentley Continental':'c','Lamborghini Hurac\u00e1n':'u','Rolls-Royce Ghost':'s','Ferrari 488':'u','Aston Martin DB11':'c'};
+const _nc=newCust;newCust=function(at){const j=_nc(at);j.sh=CSH[j.car]||'h';return j};
+
+</script>
+<script>
+/* ===== v12: wyscigi 1/4 mili oraz wyscigi torowe ===== */
+let rm=0;
+const TSC=[18,26,34,42,50,58,66,74,82,92],TM=[[120,.45,.30,.25],[85,.20,.30,.50],[100,.33,.33,.34]];
+const fmtLap=t=>Math.floor(t/60)+':'+(t%60).toFixed(2).padStart(5,'0');
+function trStats(c){const s=stats(c),kg=s.b.kg||1300,p=c.parts||{};return{acc:Math.min(100,s.hp/kg*1000/3.2),brk:Math.max(10,Math.min(100,35+s.hd*.35+(p.brk===1?25:p.brk===0?12:0)-(kg-1400)/50)),cor:Math.max(10,Math.min(100,s.hd*.9+(p.whl===1?6:p.whl===0?3:0)-(kg-1400)/80))}}
+const trScore=(c,t)=>{const a=trStats(c),m=TM[t];return m[1]*a.acc+m[2]*a.brk+m[3]*a.cor};
+const trLap=(sc,t)=>TM[t][0]*(1.35-.6*sc/100);
+const _rc12=race;race=function(i){_rc12(i);const h=$('#modal h3');if(h&&h.textContent.indexOf('1/4')>=0)h.textContent='\ud83c\udfc1 Wy\u015bcig 1/4 mili'};
+vRace=function(){const bar=`<div class='row' style='gap:8px;margin-bottom:8px'><button class='${rm===0?'pri':''}' style='flex:1' onclick='rm=0;render()'>\ud83c\udfce\ufe0f 1/4 mili</button><button class='${rm===1?'pri':''}' style='flex:1' onclick='rm=1;render()'>\ud83c\udfc1 Wy\u015bcigi torowe</button></div>`;return bar+(rm===0?`<p class='m'>Wy\u015bcig w linii prostej: liczy si\u0119 moc, masa i refleks na starcie.</p>`+_vr():vTrack())};
+function vTrack(){const c=S.cars[sel],a=trStats(c),rl=(S.rt&&S.rt[trk])||1,br=(l,v)=>`<div><div class='row'><span class='m'>${l}</span><b>${Math.round(v)}</b></div><div class='bar'><i style='width:${v}%'></i></div></div>`;
+ return`<p class='m'>Wy\u015bcig torowy (1 okr\u0105\u017cenie): liczy si\u0119 <b>przyspieszenie, hamowanie i skr\u0119canie</b>. W trakcie okr\u0105\u017cenia trafiasz w zielon\u0105 stref\u0119 na starcie, w punkcie hamowania i w zakr\u0119cie.</p>
+<div class='card'><div class='row'><b>\ud83c\udfce\ufe0f ${stats(c).b.n}</b><select onchange='sel=+this.value;render()' style='background:var(--card2);color:var(--tx);border:0;padding:8px;border-radius:8px;font:inherit'>${S.cars.map((x,i)=>`<option value='${i}' ${i==sel?'selected':''}>${CARS.find(y=>y.id===x.id).n}</option>`).join('')}</select></div><div class='grid' style='margin-top:8px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))'>${br('Przyspieszenie',a.acc)}${br('Hamowanie',a.brk)}${br('Skr\u0119canie',a.cor)}</div><p class='m'>Zale\u017cy od mocy, masy, hamulc\u00f3w, zawieszenia i felg.</p></div>
+<h3>Wybierz tor</h3><div class='grid'>${TRK.map((t,i)=>`<div class='card' style='${i===trk?'border-color:var(--cy)':''}'><b>\ud83c\udfc1 ${t[0]}</b><p class='m'>${t[1]}<br>Znaczenie: moc ${Math.round(TM[i][1]*100)}% \u00b7 hamowanie ${Math.round(TM[i][2]*100)}% \u00b7 zakr\u0119ty ${Math.round(TM[i][3]*100)}%<br>Post\u0119p: poziom ${(S.rt&&S.rt[i])||1}/10<br>Tw\u00f3j czas: <b>${fmtLap(trLap(trScore(c,i),i))}</b></p><button class='${i===trk?'pri':''}' style='width:100%' onclick='trk=${i};render()'>${i===trk?'\u2714 Wybrany':'Wybierz tor'}</button></div>`).join('')}</div>
+<h3>Przeciwnicy \u2013 ${TRK[trk][0]} (10 poziom\u00f3w)</h3><div class='grid'>${TOPP[trk].map((o,i)=>`<div class='card'><div class='row'><b>Poziom ${i+1}</b><span style='color:var(--warn)'>${starS(Math.ceil((i+1)/2))}</span></div><p>${o[0]}<br><span class='m'>okr\u0105\u017cenie ~${fmtLap(trLap(TSC[i],trk))} \u00b7 wpisowe ${fmt(150*(i+1))} \u00b7 nagroda ${fmt(400*(i+1))}</span></p><button class='pri' style='width:100%' ${i+1>rl?'disabled':''} onclick='askTrack(${i})'>${i+1>rl?'\ud83d\udd12 Zablokowane':'Je\u017adzij'}</button></div>`).join('')}</div>`}
+function askTrack(i){ask(`Wpisowe na <b>${TRK[trk][0]}</b> (przeciwnik: ${TOPP[trk][i][0]}): <b>${fmt(150*(i+1))}</b>. Wchodzisz?`,()=>trackRace(i))}
+function trackRace(i){const L=i+1,fee=150*L;if(S.cash<fee){toast('\u274c Za ma\u0142o got\u00f3wki na wpisowe');return}S.cash-=fee;render();
+ const T=trk,c=S.cars[sel],a=trStats(c),PH=[['\ud83d\udea6 Start','Przyspieszenie',a.acc,'GAZ!'],['\ud83d\uded1 Hamowanie','Hamowanie',a.brk,'HAMUJ!'],['\u21aa\ufe0f Zakr\u0119t','Skr\u0119canie',a.cor,'SKR\u0118\u0106!']],qs=[],zw=v=>Math.min(.4,.1+v/100*.3);let ph=0,pos=0,dir=1,raf;
+ const draw=()=>{const p=PH[ph],z=zw(p[2]);modal(`<h3>\ud83c\udfc1 ${TRK[T][0]}</h3><p class='m'>${p[0]}: zatrzymaj suwak w zielonej strefie (szeroko\u015b\u0107 zale\u017cy od: ${p[1]} ${Math.round(p[2])}/100). Etap ${ph+1}/3</p><div class='zone'><div id='zn' style='left:${(.5-z/2)*100}%;width:${z*100}%'></div><div id='mk'></div></div><button class='pri' style='width:100%;font-size:20px;padding:14px' onclick='G&&G.hit()'>${p[3]}</button>`)};
+ const step=()=>{pos+=dir*(1.3+ph*.25)*.012;if(pos>1){pos=1;dir=-1}if(pos<0){pos=0;dir=1}const m=$('#mk');if(m)m.style.left=`calc(${pos*100}% - 3px)`;raf=requestAnimationFrame(step)};
+ const finish=()=>{const qa=qs.reduce((x,y)=>x+y)/3,me=trLap(trScore(c,T),T)*(1+(1-qa)*.08)*rnd(.994,1.006),op=trLap(TSC[i],T)*rnd(.994,1.006),mx=Math.max(me,op),win=me<op,t0=performance.now();
+  modal(`<h3>\ud83c\udfc1 ${TRK[T][0]}</h3><p class='m'>Okr\u0105\u017cenie trwa\u2026</p><div class='zone' style='height:92px;background:#222'><div id='lane1' style='position:absolute;left:0;top:8px;font-size:30px'>\ud83c\udfce\ufe0f</div><div id='lane2' style='position:absolute;left:0;top:52px;font-size:30px'>\ud83d\ude97</div><div style='position:absolute;right:0;top:0;bottom:0;width:6px;background:repeating-linear-gradient(#fff 0 8px,#000 8px 16px)'></div></div>`);
+  const W=($('#lane1')?$('#lane1').parentNode.clientWidth:300)-44;
+  const f=()=>{const t=(performance.now()-t0)/40;if($('#lane1')){$('#lane1').style.left=Math.min(1,t/me)*W+'px';$('#lane2').style.left=Math.min(1,t/op)*W+'px'}
+   if(t<mx)raf=requestAnimationFrame(f);else{if(win){gain(400*L,L*10,1);S.rt=S.rt||[1,1,1];S.rt[T]=Math.max(S.rt[T]||1,Math.min(10,L+1))}else gain(0,L*3,0);beep(win?900:200,.3,'sine');
+    modal(`<h3>${win?'\ud83c\udfc6 Wygrana!':'\ud83d\ude1e Przegrana'}</h3><p>Ty: <b>${fmtLap(me)}</b><br>${TOPP[T][i][0]}: <b>${fmtLap(op)}</b></p><p class='m'>Start ${Math.round(qs[0]*100)}% \u00b7 Hamowanie ${Math.round(qs[1]*100)}% \u00b7 Zakr\u0119t ${Math.round(qs[2]*100)}%</p><p>${win?`Nagroda: <b class='g'>${fmt(400*L)}</b>`:`Tracisz wpisowe ${fmt(fee)}`}</p><button class='pri' onclick='closeModal();render()'>OK</button>`)}};f()};
+ G={stop(){cancelAnimationFrame(raf)},hit(){if(ph>=3)return;const z=zw(PH[ph][2]),d=Math.abs(pos-.5),q=d<=z/2?1:Math.max(0,1-(d-z/2)*3);qs.push(q);beep(300+q*500,.1);ph++;if(ph>=3){cancelAnimationFrame(raf);finish()}else{pos=0;dir=1;draw()}}};
+ draw();step()}
+
+</script>
+<script>
+/* ===== v13: osobnych 10 przeciwnikow na kazdym torze ===== */
+const TOPP=[
+ ['Daewoo Matiz','Opel Astra OPC','BMW 335i','Ford Mustang GT','Audi RS4','Mercedes C63 AMG','Dodge Challenger Hellcat','Porsche 911 Turbo S','Lamborghini Aventador','Bugatti Veyron'],
+ ['Suzuki Swift','Mazda MX-5 NA','Renault Clio RS','Honda Civic Type R','Toyota GR86','Lotus Elise','Porsche Cayman GT4','Alpine A110','Ferrari 458 Speciale','McLaren 765LT'],
+ ['Skoda Fabia','Volkswagen Golf GTI','Subaru BRZ','BMW M2','Nissan 370Z Nismo','Audi R8 V8','Nissan GT-R R35','Porsche 911 GT3','Ferrari 488 Pista','Porsche 918 Spyder']].map(a=>a.map(n=>[n]));
+const _mg13=migrate;migrate=function(){_mg13();if(!Array.isArray(S.rt)){const v=S.rt||1;S.rt=[v,v,v]}};
+
+</script>
+</body>
+</html>
